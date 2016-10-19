@@ -3560,13 +3560,16 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     private static boolean checkNodeCircle(INode currentNode) {
-        List<INode> nodeList = new ArrayList<INode>();
-        Set<INode> nodeSet = new HashSet<INode>();
-        getAllSourceNode(currentNode, nodeList);
-        for (INode node : nodeList) {
-            nodeSet.add(node);
+        if (currentNode.getIncomingConnections().size() > 1) {
+            List<INode> nodeList = new ArrayList<INode>();
+            Set<INode> nodeSet = new HashSet<INode>();
+            getAllSourceNode(currentNode, nodeList);
+            for (INode node : nodeList) {
+                nodeSet.add(node);
+            }
+            return !(nodeSet.size() == nodeList.size());
         }
-        return !(nodeSet.size() == nodeList.size());
+        return false;
     }
 
     private static void getAllSourceNode(INode source, List<INode> list) {
