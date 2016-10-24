@@ -11,7 +11,10 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ProjectScope;
 import org.talend.commons.exception.ExceptionHandler;
+import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ICoreService;
 import org.talend.core.model.general.Project;
@@ -23,19 +26,25 @@ public class ChangeMappingFileMigrationTask extends AbstractProjectMigrationTask
     @Override
     public ExecutionResult execute(Project project) {
         try {
-            URL p = MetadataTalendType.getProjectForderURLOfMappingsFile();
-            changeSAPHanaMappingFile(p);
             URL s = MetadataTalendType.getSystemForderURLOfMappingsFile();
             changeSAPHanaMappingFile(s);
-            if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreService.class)) {
-                ICoreService service = (ICoreService) GlobalServiceRegister.getDefault().getService(ICoreService.class);
-                service.synchronizeMapptingXML();
-                return ExecutionResult.SUCCESS_NO_ALERT;
+
+            String dirPath = "/" + MetadataTalendType.INTERNAL_MAPPINGS_FOLDER; //$NON-NLS-1$
+            IProject _project = ResourceUtils.getProject(project);
+            File projectMappingFolder = new ProjectScope(_project).getLocation().append(dirPath).toFile();
+            if (projectMappingFolder.exists()) {
+                URL p = MetadataTalendType.getProjectForderURLOfMappingsFile();
+                changeSAPHanaMappingFile(p);
+                if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreService.class)) {
+                    ICoreService service = (ICoreService) GlobalServiceRegister.getDefault().getService(ICoreService.class);
+                    service.synchronizeMapptingXML();
+                }
             }
+            return ExecutionResult.SUCCESS_NO_ALERT;
         } catch (Exception e) {
             ExceptionHandler.process(e);
+            return ExecutionResult.FAILURE;
         }
-        return ExecutionResult.FAILURE;
     }
     
     private void changeSAPHanaMappingFile(URL url) {
