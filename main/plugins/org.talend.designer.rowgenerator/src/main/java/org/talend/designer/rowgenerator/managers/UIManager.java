@@ -240,7 +240,11 @@ public class UIManager {
                 List<Function> funs = functionManager.getFunctionsByType(ext.getTalendType());
                 ext.setArrayFunctions(functionManager.getFunctionArrays(funs));
                 if (!funs.isEmpty()) {
-                    ext.setFunction(functionManager.getFuntionFromArray(ext, externalNode, j));
+                    Function funtion = functionManager.getFunctionFromColumn(ext);
+                    if (funtion == null) {
+                        funtion = functionManager.getFuntionFromArray(ext, externalNode, j);
+                    }
+                    ext.setFunction(funtion);
                 }
                 exts.add(ext);
             }

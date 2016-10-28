@@ -20,9 +20,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.talend.commons.exception.ExceptionHandler;
 import org.talend.designer.rowgenerator.RowGeneratorComponent;
 import org.talend.designer.rowgenerator.managers.UIManager;
 import org.talend.designer.rowgenerator.ui.editor.MetadataColumnExt;
+import org.talend.utils.json.JSONArray;
+import org.talend.utils.json.JSONException;
+import org.talend.utils.json.JSONObject;
 
 /**
  * class global comment. Detailled comment <br/>
@@ -110,6 +114,35 @@ public class FunctionManagerExt extends FunctionManager {
 
         });
         return arrayTalendFunctions2;
+    }
+
+    public Function getFunctionFromColumn(MetadataColumnExt column) {
+        Function function = null;
+        String functionInfo = column.getFunctionInfo();
+        if (functionInfo != null) {
+            try {
+                JSONObject functionObj = new JSONObject(functionInfo);
+                String functionName = functionObj.getString(Function.NAME);
+                int functionSize = 0;
+                JSONArray parametersArray = functionObj.getJSONArray(Function.PARAMETERS);
+                if (parametersArray != null) {
+                    functionSize = parametersArray.length();
+                }
+                List<Function> funcs = getFunctionsByType(column.getTalendType());
+                for (Function func : funcs) {
+                    if (func.getName().equals(functionName) && func.getParameters().size() == functionSize) {
+                        function = func;
+                        break;
+                    }
+                }
+                if (function != null) {
+                    function = function.clone(parametersArray);
+                }
+            } catch (JSONException e) {
+                ExceptionHandler.process(e);
+            }
+        }
+        return function;
     }
 
     public Function getFuntionFromArray(MetadataColumnExt bean, RowGeneratorComponent externalNode, int index) {

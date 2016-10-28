@@ -12,9 +12,8 @@
 // ============================================================================
 package org.talend.designer.rowgenerator.data;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -24,6 +23,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.core.i18n.Messages;
+import org.talend.core.model.metadata.MetadataColumn;
+import org.talend.core.model.metadata.types.JavaTypesManager;
 import org.talend.designer.rowgenerator.ui.editor.MetadataColumnExt;
 
 /**
@@ -102,6 +103,23 @@ public class FunctionManagerExtTest {
         params.add(param);
         function.setParameters(params);
         return function;
+    }
+
+    @Test
+    public void testGetFuntionFromColumn() {
+        FunctionManagerExt functionManagerExt = new FunctionManagerExt();
+        MetadataColumn newColumn = new MetadataColumn();
+        newColumn.setLabel("newColumn"); //$NON-NLS-1$
+        newColumn.setTalendType(JavaTypesManager.STRING.getId());
+        MetadataColumnExt columnExt = new MetadataColumnExt(newColumn);
+        List<Function> funcs = functionManagerExt.getFunctionsByType(newColumn.getTalendType());
+        if (funcs.size() > 0) {
+            Function func = funcs.get(0);
+            columnExt.setFunction(func);
+            Function function = functionManagerExt.getFunctionFromColumn(columnExt);
+            assertEquals(func.getName(), function.getName());
+            assertEquals(func.getParameters().size(), function.getParameters().size());
+        }
     }
 
 }
