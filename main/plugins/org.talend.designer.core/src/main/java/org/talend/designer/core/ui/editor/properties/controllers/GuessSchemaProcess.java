@@ -282,11 +282,19 @@ public class GuessSchemaProcess {
             String dbName = null;
             String schema = null;
             if(connectionNode!=null){
-                dbName = (String) connectionNode.getElementParameter("DBNAME").getValue();
-                schema = (String) connectionNode.getElementParameter("SCHEMA_DB").getValue();
+                if(connectionNode.getElementParameter("DBNAME")!=null){
+                    dbName = (String) connectionNode.getElementParameter("DBNAME").getValue();
+                }
+                if(connectionNode.getElementParameter("SCHEMA_DB")!=null){
+                    schema = (String) connectionNode.getElementParameter("SCHEMA_DB").getValue();
+                }
             }else{
-                dbName = (String) node.getElementParameter("DBNAME").getValue();
-                schema = (String) node.getElementParameter("SCHEMA_DB").getValue();
+                if(node.getElementParameter("DBNAME")!=null){
+                    dbName = (String) node.getElementParameter("DBNAME").getValue();
+                }
+                if(node.getElementParameter("SCHEMA_DB")!=null){
+                    schema = (String) node.getElementParameter("SCHEMA_DB").getValue();
+                }
             }
             codeStart = "java.lang.Class.forName(\"" + info.getDriverClassName() + "\");\r\n" + "String url = \"" + info.getUrl() //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                     + "\";\r\n" + "java.sql.Connection conn = java.sql.DriverManager.getConnection(url, \"" + info.getUsername() //$NON-NLS-1$ //$NON-NLS-2$
