@@ -31,6 +31,8 @@ import org.talend.commons.ui.gmf.util.DisplayUtils;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.service.ComponentService;
+import org.talend.core.model.components.EComponentType;
+import org.talend.core.model.components.IComponent;
 import org.talend.core.model.metadata.IMetadataTable;
 import org.talend.core.model.metadata.MetadataToolAvroHelper;
 import org.talend.core.model.metadata.MetadataToolHelper;
@@ -309,18 +311,33 @@ public class GenericElementParameter extends ElementParameter {
                         if (!mainTable.sameMetadataAs(newTable) || !newTable.sameMetadataAs(mainTable)) {
                             mainTable.setListColumns(newTable.getListColumns());
                             if (this.askPropagate == null && node.getOutgoingConnections().size() != 0) {
-                                Display.getDefault().syncExec(new Runnable() {
-                                    
-                                    @Override
-                                    public void run() {
-                                        askPropagate = ChangeMetadataCommand.askPropagate();
+                                boolean hasPropagation = false;
+                                for (IConnection connection : node.getOutgoingConnections()) {
+                                    if (connector.getName().equals(connection.getConnectorName())) {
+                                        if (isSchemaPropagated(connection.getTarget())) {
+                                            hasPropagation = true;
+                                            break;
+                                        }
                                     }
-                                });
+                                }
+                                if (hasPropagation) {
+                                    Display.getDefault().syncExec(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            askPropagate = ChangeMetadataCommand.askPropagate();
+                                        }
+                                    });
+                                }
                             }
                             if (this.askPropagate != null && this.askPropagate) {
                                 for (IConnection connection : node.getOutgoingConnections()) {
                                     if (connector.getName().equals(connection.getConnectorName())) {
-                                        ChangeMetadataCommand cmd = new ChangeMetadataCommand(connection.getTarget(), null, null,
+                                        INode target = connection.getTarget();
+                                        if (!isSchemaPropagated(target)) {
+                                            continue;
+                                        }
+                                        ChangeMetadataCommand cmd = new ChangeMetadataCommand(target, null, null,
                                                 newTable, null);
                                         cmd.setPropagate(true);
                                         IProcess process = node.getProcess();
@@ -338,6 +355,21 @@ public class GenericElementParameter extends ElementParameter {
             }
             this.askPropagate = null;
         }
+    }
+
+    private boolean isSchemaPropagated(INode node) {
+        if (node == null) {
+            return false;
+        }
+        IComponent component = node.getComponent();
+        if (component == null) {
+            return false;
+        }
+        // Always consider it is true for the new component.
+        if (EComponentType.GENERIC.equals(component.getComponentType())) {
+            return true;
+        }
+        return component.isSchemaAutoPropagated();
     }
 
     public String getParameterName() {
