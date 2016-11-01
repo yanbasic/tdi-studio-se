@@ -123,7 +123,9 @@ public class PropertyTypeController extends AbstractRepositoryController {
         INode node = (INode) param.getElement();
         //
         String componentName = node.getComponent().getName();
-        return RepositoryComponentManager.validComponent(componentName);
+        String repositoryValue = param.getRepositoryValue();
+        boolean isHDFSRepVal = repositoryValue != null && repositoryValue.contains("HDFS"); //$NON-NLS-1$
+        return !isHDFSRepVal && RepositoryComponentManager.validComponent(componentName);
         // for (EDatabaseComponentName eComponent : EDatabaseComponentName.values()) {
         // if (componentName.equals(eComponent.getInputComponentName())
         // || componentName.equals(eComponent.getOutPutComponentName())) {
