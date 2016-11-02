@@ -13,6 +13,7 @@
 package org.talend.designer.core.ui.editor.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -143,9 +145,9 @@ import org.talend.repository.utils.AutoConvertTypesUtils;
 
 /**
  * Object that describes the node. All informations on nodes are stored in this class. <br/>
- * 
+ *
  * $Id$
- * 
+ *
  */
 public class Node extends Element implements IGraphicalNode {
 
@@ -288,6 +290,7 @@ public class Node extends Element implements IGraphicalNode {
 
     boolean isJunitStart = false;
 
+
     // as the talend job contains multiple mapreduce jobs, use this to indicate which mapreduce job contains this
     // graphic node
     private Integer mrGroupId;
@@ -304,9 +307,11 @@ public class Node extends Element implements IGraphicalNode {
 
     private ComponentProperties componentProperties;
 
+    private List<String> previousCustomLibs = null;
+
     /**
      * Getter for index.
-     * 
+     *
      * @return the index
      */
     public String getIndex() {
@@ -315,7 +320,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Sets the takeSchema.
-     * 
+     *
      * @param takeSchema the takeSchema to set
      */
     public void setTakeSchema(Boolean takeSchema) {
@@ -324,7 +329,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Sets the index.
-     * 
+     *
      * @param index the index to set
      */
     public void setIndex(String index) {
@@ -406,7 +411,7 @@ public class Node extends Element implements IGraphicalNode {
     /**
      * This constructor is called when the node is created from the palette the unique name will be determined with the
      * number of components of this type.
-     * 
+     *
      * @param component
      */
     public Node(IComponent component) {
@@ -698,9 +703,9 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * Note that if there is several connectors of the same type, it will return the first one.
-     * 
+     *
      * @param connType
      * @return
      */
@@ -729,9 +734,9 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * Note that if there is several connectors the same name, it will return the first one.
-     * 
+     *
      * @param connName
      * @return
      */
@@ -793,7 +798,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Get the ImageDescriptor of the component which is taken from the xml.
-     * 
+     *
      * @return ImageDescriptor
      */
     public ImageDescriptor getIcon32() {
@@ -806,7 +811,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives the unique name of the node.
-     * 
+     *
      * @return unique name
      */
     @Override
@@ -988,7 +993,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Set this node as the start of the diagram.
-     * 
+     *
      * @param start boolean that will give the status
      */
     @Override
@@ -1005,7 +1010,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Return the start status of this node.
-     * 
+     *
      * @return
      */
     @Override
@@ -1015,7 +1020,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Set the location of the node.
-     * 
+     *
      * @param location Point
      */
     @Override
@@ -1040,7 +1045,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives the location of the node.
-     * 
+     *
      * @return Point
      */
     @Override
@@ -1051,7 +1056,7 @@ public class Node extends Element implements IGraphicalNode {
     /**
      * Set the label of a node. <br/>
      * <b> /!\ This is the text of the label, not the name of the component</b>
-     * 
+     *
      * @param titleName
      */
     @Override
@@ -1081,7 +1086,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * DOC hcw Comment method "updateVisibleDataForExistingConnection".
-     * 
+     *
      * @param connNode
      */
     private void updateVisibleDataForExistingConnection(Node connNode) {
@@ -1189,7 +1194,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives the label of the node.
-     * 
+     *
      * @return
      */
     @Override
@@ -1199,7 +1204,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives the object of the model part for the label.
-     * 
+     *
      * @return
      */
     public NodeLabel getNodeLabel() {
@@ -1216,7 +1221,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Add a new connection input to the node.
-     * 
+     *
      * @param connection
      */
     @Override
@@ -1531,7 +1536,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Add a new connection output to the node.
-     * 
+     *
      * @param connection
      */
     @Override
@@ -1600,7 +1605,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives all incoming connections (only).
-     * 
+     *
      * @return List of Connection
      */
     @Override
@@ -1636,7 +1641,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Gives all outgoing connections (only).
-     * 
+     *
      * @return List of Connection
      */
     @Override
@@ -1653,7 +1658,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Remove a connection input.
-     * 
+     *
      * @param connection
      */
     @Override
@@ -1696,9 +1701,9 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * only invoked when target node basedOnInputSchemas.
-     * 
+     *
      * @param connection
      */
     private void removeTargetMetaData(IConnection connection) {
@@ -1732,7 +1737,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Remove a connection output.
-     * 
+     *
      * @param connection
      */
     @Override
@@ -1807,7 +1812,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.designer.core.ui.editor.Element#getPropertyValue(java.lang.Object)
      */
     @Override
@@ -1821,7 +1826,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.designer.core.ui.editor.Element#setPropertyValue(java.lang.Object, java.lang.Object)
      */
     @Override
@@ -1979,7 +1984,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.designer.core.ui.editor.Element#getElementName()
      */
     @Override
@@ -2057,7 +2062,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Getter for performanceData.
-     * 
+     *
      * @return the performanceData
      */
     public String getPerformanceData() {
@@ -2135,7 +2140,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * DOC nrousseau Comment method "isDummy".
-     * 
+     *
      * @return
      */
     @Override
@@ -2145,7 +2150,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * DOC nrousseau Comment method "setDummy".
-     * 
+     *
      * @param value
      */
     public void setDummy(Boolean value) {
@@ -2229,7 +2234,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#hasConditionnalOutputs()
      */
     @Override
@@ -2253,7 +2258,7 @@ public class Node extends Element implements IGraphicalNode {
      * first element with no active link from type Main/Ref/Iterate.<br>
      * <i><b>Note:</b></i> This function doesn't work if the node has several start points (will return a random start
      * node).
-     * 
+     *
      * @param withCondition
      * @return Start Node found.
      */
@@ -2473,7 +2478,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#setProcess(org.talend.core.model.process.IProcess)
      */
     @Override
@@ -2724,7 +2729,7 @@ public class Node extends Element implements IGraphicalNode {
 
             if (param.getName().equals(EParameterName.COMMENT.getName())) {
                 String infoValue = (String) param.getValue();
-                if (infoValue != null && !infoValue.equals("")) { //$NON-NLS-1$                                             
+                if (infoValue != null && !infoValue.equals("")) { //$NON-NLS-1$
                     Problems.add(ProblemStatus.INFO, this, infoValue);
                 }
             }
@@ -2734,9 +2739,9 @@ public class Node extends Element implements IGraphicalNode {
 
             /**
              * ***Some explain for the following check***
-             * 
+             *
              * "if (param.isRequired(getElementParameters()) && !param.isShow(emptyParamList)" <br>
-             * 
+             *
              * 1. in fact it's simply for components who have a table never displayed<br>
              * like tAdvancedOutput / tRowGenerator etc<br>
              * 2. as long as there is any show_if / not_show_if.... means there is no point to check any error here,
@@ -3074,7 +3079,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * DOC ycbai Comment method "checkValidationRule".
-     * 
+     *
      * @param param
      */
     public boolean checkValidationRule(IElementParameter param) {
@@ -3109,7 +3114,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * DOC wzhang Comment method "checkFileOutputXMLMultiSchemaComponent".
-     * 
+     *
      * @param param
      * @param tableValues
      */
@@ -3198,7 +3203,7 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * DOC xye Comment method "checkMultiComponents".
      */
     private void checkMultiComponents() {
@@ -3222,7 +3227,7 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * DOC hcyi Comment method "checkHasMultiPrejobOrPostJobComponents".
      */
     private void checkHasMultiPrejobOrPostJobComponents() {
@@ -4096,6 +4101,7 @@ public class Node extends Element implements IGraphicalNode {
         }
     }
 
+
     @Override
     public void checkAndRefreshNode() {
         Problems.clearAll(this);
@@ -4124,6 +4130,8 @@ public class Node extends Element implements IGraphicalNode {
 
             checkNodeProblems();
 
+            checkDependencyLibraries();
+
             // feature 2,add a new extension point to intercept the validation action for Uniserv
             List<ICheckNodesService> checkNodeServices = CheckNodeManager.getCheckNodesService();
             for (ICheckNodesService checkService : checkNodeServices) {
@@ -4145,6 +4153,66 @@ public class Node extends Element implements IGraphicalNode {
         }
     }
 
+
+
+
+    /*
+     * Includes new custom dependency libraries into bundle classpath by default
+     */
+    private void checkDependencyLibraries() {
+        if (getComponent() != null && "cMQConnectionFactory".equals(getComponent().getName())) {
+
+            Map<Object, Object> additionalProperties = process.getAdditionalProperties();
+            if (additionalProperties == null) {
+                return;
+            }
+
+            IElementParameter param = getElementParameter("OTHER_DRIVER_JAR");
+            if (param == null) {
+                return;
+            }
+
+
+            Object stored = additionalProperties.get(Constants.BUNDLE_CLASSPATH);
+            if (stored == null) {
+                return;
+            }
+
+            List<String> bundleClassPath = new ArrayList<>(Arrays.asList(stored.toString().split(",")));
+
+            List<String> currentLibs =  new ArrayList<>();
+
+            for(Map m : (List<Map>)param.getValue()) {
+                currentLibs.add((String)m.get("JAR_NAME"));
+            }
+
+            if (previousCustomLibs != null) {
+                // 1. Remove all elements that are not in currentLibs from bundleClassPath
+                for (String libName : previousCustomLibs) {
+                    if (!currentLibs.contains(libName)) {
+                        bundleClassPath.remove(libName);
+                    }
+                }
+
+                // 2. Add to bundleClassPath all the elements that are in currentLibs, but not in previousCustomLibs
+                for (String libName : currentLibs) {
+                    if (!previousCustomLibs.contains(libName)) {
+                        bundleClassPath.add(libName);
+                    }
+                }
+            }
+
+            previousCustomLibs = currentLibs;
+
+            StringBuilder sb = new StringBuilder();
+            for (String s : bundleClassPath) {
+                sb.append(s).append(",");
+            }
+
+            additionalProperties.put(Constants.BUNDLE_CLASSPATH,  sb.substring(0, sb.length() - 1));
+        }
+    }
+
     private void checkNodeProblems() {
         BundleContext bc = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         Collection<ServiceReference<NodeProblem>> nodeProblems = Collections.EMPTY_LIST;
@@ -4162,9 +4230,9 @@ public class Node extends Element implements IGraphicalNode {
     }
 
     /**
-     * 
+     *
      * DOC cmeng Comment method "checkELTTableReference".
-     * 
+     *
      * @return true >> is a ELTTable Reference, and set reference true<br>
      * false >> is not a ELTTable Reference, and set reference false
      */
@@ -4345,7 +4413,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#renameMetadataColumnName(java.lang.String, java.lang.String,
      * java.lang.String)
      */
@@ -4388,7 +4456,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#isThereLinkWithHash()
      */
     @Override
@@ -4458,7 +4526,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Getter for size.
-     * 
+     *
      * @return the size
      */
     @Override
@@ -4468,7 +4536,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Sets the size.
-     * 
+     *
      * @param size the size to set
      */
     @Override
@@ -4479,7 +4547,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Getter for listConnector.
-     * 
+     *
      * @return the listConnector
      */
     @Override
@@ -4493,7 +4561,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Test if the current node can be the start of the job not.
-     * 
+     *
      * @return
      */
     @Override
@@ -4546,7 +4614,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * yzhang Comment method "setConnectionName".
-     * 
+     *
      * @param name
      */
     public void setConnectionName(String name) {
@@ -4559,7 +4627,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * yzhang Comment method "getConnectionName".
-     * 
+     *
      * @param name
      * @return
      */
@@ -4571,7 +4639,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#reloadComponent(org.talend.core.model.components.IComponent,
      * java.util.Map)
      */
@@ -4735,7 +4803,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#getDesignSubjobStartNode()
      */
     @Override
@@ -4745,7 +4813,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#isDesignSubjobStartNode()
      */
     @Override
@@ -4755,7 +4823,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * return false is ok, becase all nodes generated from virtual component are DataNode.
-     * 
+     *
      * @see org.talend.core.model.process.INode#isVirtualGenerateNode()
      */
     @Override
@@ -4788,7 +4856,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#isGeneratedAsVirtualComponent()
      */
     @Override
@@ -4839,7 +4907,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#isUseLoopOnConditionalOutput(java.lang.String)
      */
     @Override
@@ -4849,7 +4917,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#getUniqueShortName()
      */
     @Override
@@ -4887,7 +4955,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.talend.core.model.process.INode#isSubProcessContainTraceBreakpoint()
      */
     @Override
@@ -5109,7 +5177,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Getter for subtreeStart.
-     * 
+     *
      * @return the subtreeStart
      */
     @Override
@@ -5119,7 +5187,7 @@ public class Node extends Element implements IGraphicalNode {
 
     /**
      * Sets the subtreeStart.
-     * 
+     *
      * @param subtreeStart the subtreeStart to set
      */
     public void setSubtreeStart(boolean subtreeStart) {
