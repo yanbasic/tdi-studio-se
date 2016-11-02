@@ -533,7 +533,11 @@ public abstract class AbstractPreferenceComposite extends MultipleThreadDynamicC
                  * @param version
                  */
                 private void applySettingsToSubJob(String id, String version) {
-                    ProcessType processType = ItemCacheManager.getProcessItem(id, version).getProcess();
+                    final ProcessItem processItem = ItemCacheManager.getProcessItem(id, version);
+                    if (processItem == null) {
+                        return;
+                    }
+                    ProcessType processType = processItem.getProcess();
                     EList<ElementParameterType> parameters = processType.getParameters().getElementParameter();
                     StatsAndLogsViewHelper.applySettings(parameters, elem);
 

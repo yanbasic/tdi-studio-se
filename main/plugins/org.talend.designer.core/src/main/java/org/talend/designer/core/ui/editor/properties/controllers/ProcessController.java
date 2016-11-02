@@ -526,9 +526,11 @@ public class ProcessController extends AbstractElementPropertySectionController 
                 if (StringUtils.isNotEmpty(jobId)) {
                     // if user have selected job
                     ProcessItem processItem = ItemCacheManager.getProcessItem(jobId);
-                    String jobName = processItem.getProperty().getLabel();
-                    // expand the tree node and reveal it
-                    dialog.setSelectedNodeName(jobName);
+                    if (processItem != null) {
+                        String jobName = processItem.getProperty().getLabel();
+                        // expand the tree node and reveal it
+                        dialog.setSelectedNodeName(jobName);
+                    }
                 }
             }
         } catch (Throwable e) {
