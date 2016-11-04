@@ -296,8 +296,8 @@ public final class TalendEditorPaletteFactory {
                 if (favoriteComponentNames != null && favoriteComponentNames.contains(xmlComponent.getName())) {
                     componentsDrawer = ht.get(FAVORITES);
                     if (componentsDrawer != null) {
-                        component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, new PaletteComponentFactory(
-                                xmlComponent), imageSmall, imageLarge);
+                        component = new TalendCombinedTemplateCreationEntry(name, name, Node.class,
+                                xmlComponent, imageSmall, imageLarge);
 
                         component.setDescription(longName);
                         component.setParent(componentsDrawer);
@@ -316,8 +316,8 @@ public final class TalendEditorPaletteFactory {
                         continue;
                     }
 
-                    component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, new PaletteComponentFactory(
-                            xmlComponent), imageSmall, imageLarge);
+                    component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, 
+                            xmlComponent, imageSmall, imageLarge);
 
                     component.setDescription(longName);
 
@@ -663,8 +663,8 @@ public final class TalendEditorPaletteFactory {
                 } else {
                     imageLarge = recentlyUsedComponent.getIcon32();
                 }
-                component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, new PaletteComponentFactory(
-                        recentlyUsedComponent), imageSmall, imageLarge);
+                component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, 
+                        recentlyUsedComponent, imageSmall, imageLarge);
 
                 component.setDescription(longName);
                 component.setParent(componentsDrawer);
@@ -679,7 +679,7 @@ public final class TalendEditorPaletteFactory {
         IComponent component = ((PaletteComponentFactory) entry.getToolProperty(CreationTool.PROPERTY_CREATION_FACTORY))
                 .getComponent();
         TalendCombinedTemplateCreationEntry newEntry = new TalendCombinedTemplateCreationEntry(name, name, Node.class,
-                new PaletteComponentFactory(component), entry.getSmallIcon(), entry.getLargeIcon());
+                component, entry.getSmallIcon(), entry.getLargeIcon());
 
         newEntry.setDescription(entry.getDescription());
         return newEntry;
@@ -700,7 +700,7 @@ public final class TalendEditorPaletteFactory {
             imageLarge = component.getIcon32();
         }
         TalendCombinedTemplateCreationEntry newEntry = new TalendCombinedTemplateCreationEntry(name, name, Node.class,
-                new PaletteComponentFactory(component), imageSmall, imageLarge);
+                component, imageSmall, imageLarge);
 
         newEntry.setDescription(component.getLongName());
         return newEntry;
@@ -904,8 +904,8 @@ public final class TalendEditorPaletteFactory {
                 if (favoriteComponentNames != null && favoriteComponentNames.contains(xmlComponent.getName())) {
                     componentsDrawer = ht.get(FAVORITES);
                     if (componentsDrawer != null) {
-                        component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, new PaletteComponentFactory(
-                                xmlComponent), imageSmall, imageLarge);
+                        component = new TalendCombinedTemplateCreationEntry(name, name, Node.class,
+                                xmlComponent, imageSmall, imageLarge);
 
                         component.setDescription(longName);
                         component.setParent(componentsDrawer);
@@ -930,8 +930,8 @@ public final class TalendEditorPaletteFactory {
                     // String key = null;
                     // key = xmlComponent.getName() + "#" + oraStrings[j];//$NON-NLS-1$
 
-                    component = new TalendCombinedTemplateCreationEntry(name, name, Node.class, new PaletteComponentFactory(
-                            xmlComponent), imageSmall, imageLarge);
+                    component = new TalendCombinedTemplateCreationEntry(name, name, Node.class,
+                            xmlComponent, imageSmall, imageLarge);
 
                     component.setDescription(longName);
                     if (a == 0) {

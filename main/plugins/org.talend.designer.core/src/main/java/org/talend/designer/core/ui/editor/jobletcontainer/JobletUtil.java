@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.oro.text.regex.MalformedPatternException;
+import org.apache.oro.text.regex.Pattern;
+import org.apache.oro.text.regex.Perl5Compiler;
+import org.apache.oro.text.regex.Perl5Matcher;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
@@ -16,6 +20,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
+import org.talend.commons.exception.CommonExceptionHandler;
 import org.talend.commons.runtime.model.repository.ERepositoryStatus;
 import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.core.GlobalServiceRegister;
@@ -834,6 +839,26 @@ public class JobletUtil {
             }
         }
 
+        return false;
+    }
+    
+    public boolean matchExpression(String expression) {
+        if(expression == null){
+            return false;
+        }
+        Perl5Matcher matcher = new Perl5Matcher();
+        Perl5Compiler compiler = new Perl5Compiler();
+
+        Pattern pattern = null;
+        try {
+            pattern = compiler.compile("[0-9a-zA-Z_]{1,}:[0-9a-zA-Z_]{1,}"); //$NON-NLS-1$
+        } catch (MalformedPatternException e) {
+            CommonExceptionHandler.process(e);
+        }
+
+        if (matcher.matches(expression, pattern)) {
+            return true;
+        }
         return false;
     }
 

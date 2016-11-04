@@ -2185,12 +2185,17 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
         Node nc;
 
         EList listParamType;
-
+        boolean isCurrentProject = ProjectManager.getInstance().isInCurrentMainProject(this.getProperty());
         unloadedNode = new ArrayList<NodeType>();
         for (int i = 0; i < nodeList.size(); i++) {
             nType = (NodeType) nodeList.get(i);
             listParamType = nType.getElementParameter();
-            IComponent component = ComponentsFactoryProvider.getInstance().get(nType.getComponentName(), componentsType);
+            String componentName = nType.getComponentName();
+            IComponent component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
+            if(!isCurrentProject && component!=null && (component.getComponentType() == EComponentType.JOBLET) && !componentName.contains(":")){  //$NON-NLS-1$
+                componentName = ProjectManager.getInstance().getProject(this.getProperty()).getLabel() +":"+componentName; //$NON-NLS-1$
+                component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
+            }
             if (component == null) {
                 unloadedNode.add(nType);
                 continue;
@@ -2203,10 +2208,12 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             List<NodeType> tempNodes = new ArrayList<NodeType>(unloadedNode);
             for(NodeType unNode:tempNodes){
                 listParamType = unNode.getElementParameter();
-                boolean isCurrentProject = ProjectManager.getInstance().isInCurrentMainProject(this.getProperty());
                 String componentName = unNode.getComponentName();
-                if(!isCurrentProject){
-                    componentName = componentName +"_"+ProjectManager.getInstance().getProject(this.getProperty()).getLabel();
+                if(!isCurrentProject && !componentName.contains(":")){
+                    componentName = ProjectManager.getInstance().getProject(this.getProperty()).getLabel() +":"+componentName; //$NON-NLS-1$
+                }else if(new JobletUtil().matchExpression(componentName)){
+                    String[] names = componentName.split(":"); //$NON-NLS-1$
+                    componentName = names[1];
                 }
                 IComponent component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
                 if(component!=null){
