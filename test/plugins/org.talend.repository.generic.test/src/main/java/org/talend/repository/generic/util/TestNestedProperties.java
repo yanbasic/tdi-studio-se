@@ -27,9 +27,9 @@ import org.talend.daikon.properties.property.Property;
  */
 public class TestNestedProperties extends PropertiesImpl {
 
-    public Property userName = newProperty("userName").setRequired(); //$NON-NLS-1$
+    public Property<String> userName = newString("userName").setRequired(); //$NON-NLS-1$
 
-    public Property userPassword = newProperty("userPassword").setRequired(); //$NON-NLS-1$
+    public Property<String> userPassword = newString("userPassword").setRequired(); //$NON-NLS-1$
 
     public TestNestedProperties(String name) {
         super(name);
