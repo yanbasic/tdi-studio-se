@@ -6,6 +6,8 @@ imports="
         org.talend.components.api.component.ConnectorTopology
         org.talend.core.model.metadata.IMetadataColumn
         org.talend.core.model.metadata.IMetadataTable
+        org.talend.core.model.metadata.types.JavaType
+        org.talend.core.model.metadata.types.JavaTypesManager
         org.talend.core.model.process.ElementParameterParser
         org.talend.core.model.process.IConnection
         org.talend.core.model.process.IConnectionCategory
@@ -17,6 +19,7 @@ imports="
 %>
 // end of generic
 
+<%@include file="@{org.talend.designer.codegen}/jet_stub/generic/component_util_indexedrecord_to_rowstruct.javajet"%>
 <%
 CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 INode node = (INode)codeGenArgument.getArgument();
@@ -53,8 +56,38 @@ if(hasOutputOnly || asInputComponent){
     final java.util.Map<String, Object> resultMap_<%=cid%> = reader_<%=cid%>.getReturnValues();
 <%
 }else if(hasInput){
+    IndexedRecordToRowStructGenerator rejectIrToRow = null;
+
+    List<? extends IConnection> outgoingConns = node.getOutgoingSortedConnections();
+    if (outgoingConns!=null){
+        for (int i = 0; i < outgoingConns.size(); i++) {
+            IConnection outgoingConn = outgoingConns.get(i);
+            if ("REJECT".equals(outgoingConn.getConnectorName())) {
+                rejectIrToRow = new IndexedRecordToRowStructGenerator(cid + "OutReject",
+                        outgoingConn);
+            }
+        }
+    }
+
+
 %>
     org.talend.components.api.component.runtime.Result resultObject_<%=cid%> = (org.talend.components.api.component.runtime.Result)writer_<%=cid%>.close();
+   	if(writer_<%=cid%> instanceof org.talend.components.api.component.runtime.WriterWithFeedback<?, ?, ?>){
+<%
+        if (rejectIrToRow != null) {
+%>
+            java.util.Iterator<?> outgoingRejectRecords_<%=cid%> = ((org.talend.components.api.component.runtime.WriterWithFeedback<?, ?, ?>)writer_<%=cid%>).getRejectedWrites().iterator();
+            if (outgoingRejectRecords_<%=cid%>.hasNext()) {
+                <%=rejectIrToRow.getConnection().getName()%> = new <%=rejectIrToRow.getConnection().getName() %>Struct();
+                Object outgoingReject_<%=cid%> = outgoingRejectRecords_<%=cid%>.next();
+                <%
+                rejectIrToRow.generateConvertRecord("outgoingReject_" + cid, rejectIrToRow.getConnection().getName());
+                %>
+            }
+    <%
+        }
+	%>
+	}
     final java.util.Map<String, Object> resultMap_<%=cid%> = writer_<%=cid%>.getWriteOperation().finalize(java.util.Arrays.<org.talend.components.api.component.runtime.Result>asList(resultObject_<%=cid%>), container_<%=cid%>);
 <%
 } else {
