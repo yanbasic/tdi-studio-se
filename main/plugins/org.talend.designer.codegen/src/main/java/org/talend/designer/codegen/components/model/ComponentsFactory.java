@@ -63,6 +63,7 @@ import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.ComponentManager;
 import org.talend.core.model.components.ComponentProviderInfo;
 import org.talend.core.model.components.ComponentUtilities;
+import org.talend.core.model.components.EComponentType;
 import org.talend.core.model.components.IComponent;
 import org.talend.core.model.components.IComponentsFactory;
 import org.talend.core.model.components.IComponentsHandler;
@@ -768,6 +769,26 @@ public class ComponentsFactory implements IComponentsFactory {
             }// else keep looking
         }
         return null;
+    }
+    
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.talend.core.model.components.IComponentsFactory#get(java.lang.String, org.talend.core.model.components.EComponentType)
+     */
+    @Override
+    public synchronized List<IComponent> get(String paletteType, EComponentType comType) {
+        List<IComponent> comList = new ArrayList<IComponent>();
+        if (componentList == null) {
+            init(false);
+        }
+
+        for (IComponent comp : componentList) {
+            if (comp != null && comp.getComponentType().equals(comType) && paletteType.equals(comp.getPaletteType())) {
+                comList.add(comp);
+            }
+        }
+        return comList;
     }
 
     @Override

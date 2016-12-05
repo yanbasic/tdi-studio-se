@@ -2193,11 +2193,21 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
         EList listParamType;
         boolean isCurrentProject = ProjectManager.getInstance().isInCurrentMainProject(this.getProperty());
         unloadedNode = new ArrayList<NodeType>();
+        List<NodeType> loopNodes = new ArrayList<NodeType>();
+        List<String> comNameList = new ArrayList<String>();
         for (int i = 0; i < nodeList.size(); i++) {
             nType = (NodeType) nodeList.get(i);
             listParamType = nType.getElementParameter();
             String componentName = nType.getComponentName();
             IComponent component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
+            if(component!=null && !comNameList.contains(component.getName()+":"+component.getVersion())){//$NON-NLS-1$
+                comNameList.add(component.getName()+":"+component.getVersion());//$NON-NLS-1$
+                if(isInLoop(component)){
+                    loopNodes.add(nType);
+                    continue;
+                }
+            }
+            
             if(!isCurrentProject && component!=null && (component.getComponentType() == EComponentType.JOBLET) && !componentName.contains(":")){  //$NON-NLS-1$
                 componentName = ProjectManager.getInstance().getProject(this.getProperty()).getLabel() +":"+componentName; //$NON-NLS-1$
                 component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
@@ -2228,12 +2238,25 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                 }
             }
         }
-
+        unloadedNode.addAll(loopNodes);
         if (!unloadedNode.isEmpty()) {
             for (int i = 0; i < unloadedNode.size(); i++) {
                 createDummyNode(unloadedNode.get(i), nodesHashtable);
             }
         }
+    }
+    
+    private boolean isInLoop(IComponent component) {
+        if(component!=null && component.getComponentType() == EComponentType.JOBLET){
+            if (PluginChecker.isJobLetPluginLoaded()) {
+                IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
+                        IJobletProviderService.class);
+                if (service != null && service.isInInfiniteLoop(component, this.getId()+":"+this.getVersion(), componentsType)) {//$NON-NLS-1$
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     protected Node createDummyNode(NodeType nType, Hashtable<String, Node> nodesHashtable) {

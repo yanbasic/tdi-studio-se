@@ -30,6 +30,7 @@ import org.talend.commons.exception.PersistenceException;
 import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.properties.VirtualComponentProperties;
+import org.talend.core.GlobalServiceRegister;
 import org.talend.core.PluginChecker;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.EComponentType;
@@ -76,6 +77,7 @@ import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.model.utils.NodeUtil;
 import org.talend.core.model.utils.TalendTextUtils;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
+import org.talend.core.ui.IJobletProviderService;
 import org.talend.core.ui.component.ComponentsFactoryProvider;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.designer.core.i18n.Messages;
@@ -157,6 +159,13 @@ public class DataProcess implements IGeneratingProcess {
         buildGraphicalMap = new DualHashBidiMap();
         connectionsToIgnoreInMerge = new ArrayList<IConnection>();
         shortUniqueNameList = new ArrayList<String>();
+        if (PluginChecker.isJobLetPluginLoaded()) {
+            IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
+                    IJobletProviderService.class);
+            if (service != null ) {
+                service.cleanParentList(this.process.getComponentsType(), EComponentType.JOBLET);
+            }
+        }
     }
 
     private void copyElementParametersValue(IElement sourceElement, IElement targetElement) {
