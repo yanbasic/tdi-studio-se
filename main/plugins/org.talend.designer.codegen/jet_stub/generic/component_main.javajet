@@ -3,6 +3,8 @@ imports="
         java.util.List
         java.util.Set
         java.util.HashSet
+        java.util.Map
+        java.util.HashMap
         org.talend.components.api.component.ComponentDefinition
         org.talend.designer.core.generic.model.Component
         org.talend.core.model.metadata.IMetadataColumn
@@ -68,12 +70,18 @@ if(hasInput){
 
    	boolean hasValidInput = inputConn!=null;
 
-   	IMetadataTable metadata;
+   	IMetadataTable metadata = null;
     List<IMetadataTable> metadatas = node.getMetadataList();
     boolean haveValidNodeMetadata = ((metadatas != null) && (metadatas.size() > 0) && (metadata = metadatas.get(0)) != null);
 
     if (hasValidInput && haveValidNodeMetadata) {
         List<IMetadataColumn> input_columnList = inputConn.getMetadataTable().getListColumns();
+        List<IMetadataColumn> columnList = metadata.getListColumns();
+        
+        Map<String, IMetadataColumn> nameToColumnMap = new HashMap<String, IMetadataColumn>();
+        for(IMetadataColumn column : columnList) {
+        	nameToColumnMap.put(column.getLabel(), column);
+        }
 
         if (input_columnList!=null && !input_columnList.isEmpty()) {
             // If there are dynamic columns in the schema, they need to be
@@ -110,13 +118,20 @@ if(hasInput){
             for (int i = 0; i < input_columnList.size(); i++) { // column
                 IMetadataColumn column = input_columnList.get(i);
                 if (dynamicPos != i) {
+                	String inputColumnName = column.getLabel();
+                	IMetadataColumn metadataColumn = nameToColumnMap.get(inputColumnName);
+                	
+                	if(metadataColumn == null) {
+                		continue;
+                	}
+                	
                 	//now only apply the real name to basic column, not dyanmic column
-                	String realColumnName = column.getOriginalDbColumnName();
+                	String realColumnName = metadataColumn.getOriginalDbColumnName();
                 	if(realColumnName == null || realColumnName.isEmpty()) {
-                		realColumnName = column.getLabel();
+                		realColumnName = metadataColumn.getLabel();
                 	}
                     %>
-                    current_<%=cid%>.put("<%=realColumnName%>", <%=inputConn.getName()%>.<%=column.getLabel()%>);
+                    current_<%=cid%>.put("<%=realColumnName%>", <%=inputConn.getName()%>.<%=inputColumnName%>);
                     <%
                 } else {
                     %>
