@@ -116,14 +116,14 @@ public class ComponentsUtils {
         if (componentsFactory == null) {
             componentsFactory = ComponentsFactoryProvider.getInstance();
         }
-        Set<IComponent> componentsList = componentsFactory.getComponents();
         if (components == null) {
             components = new ArrayList<IComponent>();
         } else {
-            componentsList.removeAll(components);
+            componentsFactory.removeStdComponents(components);
         }
         Map<String, IComponent> existComponents = new HashMap<String, IComponent>();
 
+        Set<IComponent> componentsList = componentsFactory.getComponents();
         for (IComponent component : componentsList) {
             existComponents.put(component.getName(), component);
         }
@@ -133,7 +133,7 @@ public class ComponentsUtils {
         for (ComponentDefinition componentDefinition : componentDefinitions) {
             try {
                 Component currentComponent = new Component(componentDefinition);
-                componentsList.add(currentComponent);
+                componentsFactory.addStdComponent(currentComponent);
             } catch (BusinessException e) {
                 ExceptionHandler.process(e);
             }

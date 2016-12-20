@@ -181,7 +181,7 @@ public final class CodeGeneratorEmittersPoolFactory {
 
                 if (components != null) {
                     ECodePart codePart = ECodePart.MAIN;
-                    for (IComponent component : new ArrayList<IComponent>(components)) {
+                    for (IComponent component : components) {
                         // don't do anything for generic component?
                         if (EComponentType.GENERIC.equals(component.getComponentType())) {
                             genericComponents.add(component);
