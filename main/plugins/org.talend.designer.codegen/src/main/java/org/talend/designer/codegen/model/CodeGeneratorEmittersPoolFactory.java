@@ -160,7 +160,7 @@ public final class CodeGeneratorEmittersPoolFactory {
 
                 List<JetBean> jetBeans = new ArrayList<JetBean>();
                 List<TemplateUtil> templates = templatesFactory.getTemplates();
-                Set<IComponent> components = componentsFactory.getComponents();
+                Set<IComponent> components = componentsFactory.getStdComponents();
                 List<IComponent> genericComponents = new ArrayList<IComponent>();// generic components
                 TimeMeasure.step("initialize Jet Emitters", "getComponents"); //$NON-NLS-1$ //$NON-NLS-2$
 

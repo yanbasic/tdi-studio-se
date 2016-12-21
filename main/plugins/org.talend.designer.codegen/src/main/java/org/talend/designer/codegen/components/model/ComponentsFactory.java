@@ -150,7 +150,9 @@ public class ComponentsFactory implements IComponentsFactory {
 
     private void initIfNeeded() {
         synchronized (initialiseLock) {
-            init(false);
+            if (!initialised) {
+                init(false);
+            }
         }
     }
 
@@ -800,7 +802,9 @@ public class ComponentsFactory implements IComponentsFactory {
     public void initializeComponents(IProgressMonitor monitor, boolean duringLogon) {
         this.monitor = monitor;
         synchronized (initialiseLock) {
-            init(duringLogon);
+            if (!initialised) {
+                init(duringLogon);
+            }
         }
         this.monitor = null;
         this.subMonitor = null;
@@ -821,6 +825,17 @@ public class ComponentsFactory implements IComponentsFactory {
         }
         synchronized (componentLetListLock) {
             components.addAll(componentLetList);
+        }
+        return components;
+    }
+
+    @Override
+    public Set<IComponent> getStdComponents() {
+        initIfNeeded();
+        Set<IComponent> components = null;
+        synchronized (componentListLock) {
+            components = new HashSet<IComponent>(componentList.size());
+            components.addAll(componentList);
         }
         return components;
     }
