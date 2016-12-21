@@ -139,11 +139,17 @@ public class ComponentsFactory implements IComponentsFactory {
 
     private Boolean initialised = false;
 
+    private final Object initialiseLock = new Object();
+
+    private final Object componentListLock = new Object();
+
+    private final Object componentLetListLock = new Object();
+
     public ComponentsFactory() {
     }
 
     private void initIfNeeded() {
-        synchronized (initialised) {
+        synchronized (initialiseLock) {
             init(false);
         }
     }
@@ -793,7 +799,7 @@ public class ComponentsFactory implements IComponentsFactory {
     @Override
     public void initializeComponents(IProgressMonitor monitor, boolean duringLogon) {
         this.monitor = monitor;
-        synchronized (initialised) {
+        synchronized (initialiseLock) {
             init(duringLogon);
         }
         this.monitor = null;
@@ -809,40 +815,26 @@ public class ComponentsFactory implements IComponentsFactory {
     public Set<IComponent> getComponents() {
         initIfNeeded();
         Set<IComponent> components = null;
-        synchronized (componentList) {
+        synchronized (componentListLock) {
             components = new HashSet<IComponent>(componentList.size() + componentLetList.size());
             components.addAll(componentList);
         }
-        synchronized (componentLetList) {
+        synchronized (componentLetListLock) {
             components.addAll(componentLetList);
         }
         return components;
     }
 
     @Override
-    public void addStdComponent(IComponent component) {
-        synchronized (componentList) {
-            componentList.add(component);
-        }
-    }
-
-    @Override
     public void addStdComponents(Collection<IComponent> components) {
-        synchronized (componentList) {
+        synchronized (componentListLock) {
             componentList.addAll(components);
         }
     }
 
     @Override
-    public void removeStdComponent(IComponent component) {
-        synchronized (componentList) {
-            componentList.remove(component);
-        }
-    }
-
-    @Override
     public void removeStdComponents(Collection<IComponent> components) {
-        synchronized (componentList) {
+        synchronized (componentListLock) {
             componentList.removeAll(components);
         }
     }
@@ -851,7 +843,7 @@ public class ComponentsFactory implements IComponentsFactory {
     public Set<IComponent> getComponentLets() {
         initIfNeeded();
         Set<IComponent> componentLets = new HashSet<IComponent>(componentLetList.size());
-        synchronized (componentLetList) {
+        synchronized (componentLetListLock) {
             componentLets.addAll(componentLetList);
         }
         return componentLets;
@@ -859,35 +851,21 @@ public class ComponentsFactory implements IComponentsFactory {
 
     @Override
     public boolean containsComponentlet(IComponent component) {
-        synchronized (componentLetList) {
+        synchronized (componentLetListLock) {
             return componentLetList.contains(component);
         }
     }
 
     @Override
-    public void addComponentlet(IComponent component) {
-        synchronized (componentLetList) {
-            componentLetList.add(component);
-        }
-    }
-
-    @Override
     public void addComponentlets(Collection<IComponent> components) {
-        synchronized (componentLetList) {
+        synchronized (componentLetListLock) {
             componentLetList.addAll(components);
         }
     }
 
     @Override
-    public void removeComponentlet(IComponent component) {
-        synchronized (componentLetList) {
-            componentLetList.remove(component);
-        }
-    }
-
-    @Override
     public void removeComponentlets(Collection<IComponent> components) {
-        synchronized (componentLetList) {
+        synchronized (componentLetListLock) {
             componentLetList.removeAll(components);
         }
     }
@@ -1059,7 +1037,7 @@ public class ComponentsFactory implements IComponentsFactory {
     }
 
     private boolean isInitialised() {
-        synchronized (initialised) {
+        synchronized (initialiseLock) {
             return initialised;
         }
     }

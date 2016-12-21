@@ -130,13 +130,21 @@ public class ComponentsUtils {
 
         // Load components from service
         Set<ComponentDefinition> componentDefinitions = service.getAllComponents();
-        for (ComponentDefinition componentDefinition : componentDefinitions) {
-            try {
-                Component currentComponent = new Component(componentDefinition);
-                componentsFactory.addStdComponent(currentComponent);
-            } catch (BusinessException e) {
-                ExceptionHandler.process(e);
+        if (componentDefinitions == null) {
+            return;
+        }
+        int size = componentDefinitions.size();
+        if (0 < size) {
+            List<IComponent> componentList = new ArrayList<IComponent>(size);
+            for (ComponentDefinition componentDefinition : componentDefinitions) {
+                try {
+                    Component currentComponent = new Component(componentDefinition);
+                    componentList.add(currentComponent);
+                } catch (BusinessException e) {
+                    ExceptionHandler.process(e);
+                }
             }
+            componentsFactory.addStdComponents(componentList);
         }
     }
 
