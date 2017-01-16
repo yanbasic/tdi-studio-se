@@ -34,6 +34,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.ConfigurationScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -42,11 +44,15 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.IStreamListener;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
+import org.eclipse.debug.internal.ui.DebugUIPlugin;
+import org.eclipse.debug.internal.ui.preferences.IDebugPreferenceConstants;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -80,6 +86,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.ui.progress.WorkbenchJob;
 import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.core.CorePlugin;
@@ -220,6 +227,12 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
 
     private final ProcessManager processManager;
 
+    private int initStyleSize;
+
+    private List<StyleRange> styles = new ArrayList<StyleRange>();
+
+    private DocumentListener documentListener = new DocumentListener();
+
     /**
      * DOC chuger ProcessComposite2 constructor comment.
      * 
@@ -233,6 +246,7 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         this.composite = parent;
         // CSS
         CoreUIPlugin.setCSSClass(this, this.getClass().getSimpleName());
+        revealJob.setSystem(true);
     }
 
     /**
@@ -668,6 +682,17 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
     public void execRun() {
         // ToolItem item = (ToolItem) event.widget;
         errorMessMap.clear();
+        if (processContext != null) {
+            processContext.clearMessages();
+            processContext.getConsolePartitioner().clearBuffer();
+            IEclipsePreferences prefs = new ConfigurationScope().getNode("org.eclipse.debug.ui");
+            IPreferenceStore store = DebugUIPlugin.getDefault().getPreferenceStore();
+            if (store != null) {
+                int highWaterMark = store.getInt(IDebugPreferenceConstants.CONSOLE_HIGH_WATER_MARK);
+                int lowWaterMark = store.getInt(IDebugPreferenceConstants.CONSOLE_LOW_WATER_MARK);
+                processContext.getConsolePartitioner().setWaterMarks(lowWaterMark, highWaterMark);
+            }
+        }
         // if (item.getData().equals(ProcessView.DEBUG_ID)) {
         // debug();
         // } else {
@@ -875,8 +900,8 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
                     ClearTraceAction clearTraceAction = new ClearTraceAction();
                     clearTraceAction.setProcess(processContext.getProcess());
                     clearTraceAction.run();
-                    consoleText.setText(""); //$NON-NLS-1$
                     processContext.clearMessages();
+                    processContext.getConsolePartitioner().clearBuffer();
                     refreshNodeContainer();
                     refreshSubjobContainer();
                 }
@@ -1046,7 +1071,7 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         // clearBeforeExec.setEnabled(processContext != null);
         // clearBeforeExec.setSelection(processContext != null && processContext.isClearBeforeExec());
         // contextComposite.setProcess(((processContext != null) && !disableAll ? processContext.getProcess() : null));
-        fillConsole(processContext != null ? processContext.getMessages() : new ArrayList<IProcessMessage>());
+        // fillConsole(processContext != null ? processContext.getMessages() : new ArrayList<IProcessMessage>());
 
         // remove trace if basic run tab active
         if (processContext != null) {
@@ -1066,6 +1091,16 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
                 }
             }
         }
+        if (this.processContext != null) {
+            processContext.getConsolePartitioner().addDocumentListener(documentListener);
+            consoleText.setContent(processContext.getConsolePartitioner().getConsoleAdapter());
+        }
+        // document = new Document();
+        // consoleAdaptor = new ConsoleDocumentAdapter(-1);
+        // consoleAdaptor.setDocument(document);
+        // if (consoleText != null && !consoleText.isDisposed()) {
+        // consoleText.setContent(consoleAdaptor);
+        // }
     }
 
     protected void setRunnable(boolean runnable) {
@@ -1164,7 +1199,7 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
                     if (msg != null) {
                         messages.add(msg);
                         doAppendToConsole(messages);
-                        scrollToEnd();
+                        // scrollToEnd();
                     }
 
                     // do a poll here to remove the first element that we just displayed.
@@ -1242,6 +1277,54 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         return newStyle;
     }
 
+    // private void doAppendToConsole(Collection<IProcessMessage> messages) {
+    // if (consoleText == null || consoleText.isDisposed()) {
+    // return;
+    // }
+    // int linesLimit = getConsoleRowLimit();
+    // int currentLines = consoleText.getLineCount();
+    // if (linesLimit > 0 && currentLines > linesLimit) {
+    // return;
+    // }
+    //
+    // List<StyleRange> styles = new ArrayList<StyleRange>();
+    // StringBuffer consoleMsgText = new StringBuffer();
+    // int startLength = consoleText.getText().length();
+    // for (StyleRange curStyle : consoleText.getStyleRanges()) {
+    // styles.add(curStyle);
+    // }
+    // boolean newStyle = false;
+    // for (IProcessMessage message : messages) {
+    // if (message.getType() == MsgType.STD_OUT) {
+    //                String[] splitLines = message.getContent().split("\n"); //$NON-NLS-1$
+    // for (String lineContent : splitLines) {
+    // if (linesLimit > 0 && currentLines > linesLimit) {
+    // return;
+    // }
+    // currentLines++;
+    // IProcessMessage lineMsg = new ProcessMessage(getLog4jMsgType(MsgType.STD_OUT, lineContent), lineContent);
+    // newStyle = newStyle | processMessage(consoleMsgText, lineMsg, startLength, styles);
+    // }
+    // } else {
+    // if (linesLimit > 0 && currentLines > linesLimit) {
+    // return;
+    // }
+    // currentLines++;
+    // // count as only one line for the error, to avoid the error to be cut from original
+    // newStyle = newStyle | processMessage(consoleMsgText, message, startLength, styles);
+    // }
+    // }
+    //
+    // if (messages.size() > 1) {
+    // consoleText.setText(consoleText.getText() + consoleMsgText);
+    // } else {
+    // consoleText.append(consoleMsgText.toString());
+    // }
+    // if (newStyle) {
+    // consoleText.setStyleRanges(styles.toArray(new StyleRange[0]));
+    // }
+    // }
+
     private void doAppendToConsole(Collection<IProcessMessage> messages) {
         if (consoleText == null || consoleText.isDisposed()) {
             return;
@@ -1251,44 +1334,16 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         if (linesLimit > 0 && currentLines > linesLimit) {
             return;
         }
-
-        List<StyleRange> styles = new ArrayList<StyleRange>();
-        StringBuffer consoleMsgText = new StringBuffer();
-        int startLength = consoleText.getText().length();
+        styles.clear();
         for (StyleRange curStyle : consoleText.getStyleRanges()) {
             styles.add(curStyle);
         }
+        initStyleSize = styles.size();
 
-        boolean newStyle = false;
-        for (IProcessMessage message : messages) {
-            if (message.getType() == MsgType.STD_OUT) {
-                String[] splitLines = message.getContent().split("\n"); //$NON-NLS-1$
-                for (String lineContent : splitLines) {
-                    if (linesLimit > 0 && currentLines > linesLimit) {
-                        return;
-                    }
-                    currentLines++;
-                    IProcessMessage lineMsg = new ProcessMessage(getLog4jMsgType(MsgType.STD_OUT, lineContent), lineContent);
-                    newStyle = newStyle | processMessage(consoleMsgText, lineMsg, startLength, styles);
-                }
-            } else {
-                if (linesLimit > 0 && currentLines > linesLimit) {
-                    return;
-                }
-                currentLines++;
-                // count as only one line for the error, to avoid the error to be cut from original
-                newStyle = newStyle | processMessage(consoleMsgText, message, startLength, styles);
-            }
+        if (processContext != null) {
+            processContext.getConsolePartitioner().doAppendToConsole(messages, styles);
         }
-
-        if (messages.size() > 1) {
-            consoleText.setText(consoleText.getText() + consoleMsgText);
-        } else {
-            consoleText.append(consoleMsgText.toString());
-        }
-        if (newStyle) {
-            consoleText.setStyleRanges(styles.toArray(new StyleRange[0]));
-        }
+        // scrollToEnd();
     }
 
     /**
@@ -1320,13 +1375,34 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         }
         consoleText.setText(""); //$NON-NLS-1$
         doAppendToConsole(messages);
-        scrollToEnd();
+        // scrollToEnd();
+    }
+
+    WorkbenchJob revealJob = new WorkbenchJob("Reveal End of Document") {//$NON-NLS-1$
+
+        @Override
+        public IStatus runInUIThread(IProgressMonitor monitor) {
+            if (!consoleText.isDisposed()) {
+                int lineCount = consoleText.getLineCount();
+                consoleText.setTopIndex(lineCount - 1);
+                System.out.println("revealJob lineCount " + lineCount);
+                String line = processContext.getConsolePartitioner().getConsoleAdapter().getLine(lineCount - 1);
+                System.out.println(line);
+            }
+            return Status.OK_STATUS;
+        }
+    };
+
+    protected void revealEndOfDocument() {
+        // scrollToEnd();
+        revealJob.schedule(50);
     }
 
     private void scrollToEnd() {
         if (consoleText.isDisposed()) {
             return;
         }
+        System.out.println("consoleText.getLineCount()" + consoleText.getLineCount());
         consoleText.setTopIndex(consoleText.getLineCount() - 1);
     }
 
@@ -1714,7 +1790,7 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
                         messagesToDisplay.add(newMessages.poll());
                     }
                     doAppendToConsole(messagesToDisplay);
-                    scrollToEnd();
+                    // scrollToEnd();
                     messagesToDisplay.clear();
                 }
             });
@@ -2142,4 +2218,34 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         // TODO Auto-generated method stub
         this.processViewHelper = processViewHelper;
     }
+
+    private class DocumentListener implements IDocumentListener {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.eclipse.jface.text.IDocumentListener#documentAboutToBeChanged(org.eclipse.jface.text.DocumentEvent)
+         */
+        @Override
+        public void documentAboutToBeChanged(DocumentEvent event) {
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.eclipse.jface.text.IDocumentListener#documentChanged(org.eclipse.jface.text.DocumentEvent)
+         */
+        @Override
+        public void documentChanged(DocumentEvent event) {
+            // System.out.println("styles " + styles.size());
+            revealEndOfDocument();
+            // if (initStyleSize != styles.size() && !consoleText.isDisposed()) {
+            // initStyleSize = styles.size();
+            // consoleText.setStyleRanges(styles.toArray(new StyleRange[0]));
+            // }
+        }
+
+    }
+
 }

@@ -8,6 +8,7 @@ Bundle-Vendor: .Talend SA.
 Bundle-Localization: plugin
 Require-Bundle: org.talend.model,
  org.eclipse.debug.ui,
+ org.eclipse.text,
  org.eclipse.emf.codegen,
  org.apache.commons.collections,
  org.apache.commons.lang,

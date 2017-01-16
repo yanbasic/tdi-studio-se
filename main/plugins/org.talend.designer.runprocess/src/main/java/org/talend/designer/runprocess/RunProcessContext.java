@@ -76,6 +76,7 @@ import org.talend.designer.runprocess.trace.TraceConnectionsManager;
 import org.talend.designer.runprocess.ui.ProcessContextComposite;
 import org.talend.designer.runprocess.ui.actions.ClearPerformanceAction;
 import org.talend.designer.runprocess.ui.actions.ClearTraceAction;
+import org.talend.designer.runprocess.ui.console.ProcessConsolePartitioner;
 import org.talend.repository.ui.utils.Log4jPrefsSettingManager;
 import org.talend.utils.network.FreePortFinder;
 
@@ -189,6 +190,8 @@ public class RunProcessContext {
     /** trace mananger */
     private TraceConnectionsManager traceConnectionsManager;
 
+    private ProcessConsolePartitioner consolePartitioner;
+
     /**
      * Constrcuts a new RunProcessContext.
      * 
@@ -202,6 +205,7 @@ public class RunProcessContext {
 
         pcsDelegate = new PropertyChangeSupport(this);
         this.processMessageManager = new ProcessMessageManager();
+        this.consolePartitioner = new ProcessConsolePartitioner();
 
         setMonitorPerf(RunProcessPlugin.getDefault().getPreferenceStore().getBoolean(RunProcessPrefsConstants.ISSTATISTICSRUN));
         setMonitorTrace(RunProcessPlugin.getDefault().getPreferenceStore().getBoolean(RunProcessPrefsConstants.ISTRACESRUN));
@@ -1830,4 +1834,14 @@ public class RunProcessContext {
             }
         });
     }
+
+    /**
+     * Getter for consolePartitioner.
+     * 
+     * @return the consolePartitioner
+     */
+    public ProcessConsolePartitioner getConsolePartitioner() {
+        return this.consolePartitioner;
+    }
+
 }
