@@ -23,7 +23,7 @@ imports="
 	String attemptsInterval = ElementParameterParser.getValue(node, "__ATTEMPS_INTERVAL_TIME__");
 %>
 	int reConnMaxNum_<%=cid%>=<%=attemptConnTimes%>;
-	reConnMaxNum_<%=cid%> = reConnMaxNum_<%=cid%> > 0 ? reConnMaxNum_<%=cid%> : 1;
+	reConnMaxNum_<%=cid%> = reConnMaxNum_<%=cid%> >= 0 ? reConnMaxNum_<%=cid%> : 0;
 <%
     if(isMsCrm2015OnPremise){
        %>
