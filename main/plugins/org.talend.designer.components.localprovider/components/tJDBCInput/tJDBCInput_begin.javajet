@@ -30,15 +30,14 @@ imports="
 			super.createStatement(node);
 			String useCursor= ElementParameterParser.getValue(node, "__USE_CURSOR__");
 			String cursorSize= ElementParameterParser.getValue(node, "__CURSOR_SIZE__");
-		    String useExistingConn = ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__");
+		   String useExistingConn = ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__");
 			String driverName = null;
-		   
-		    if(("true").equals(useExistingConn)) {
+		   if(("true").equals(useExistingConn)) {
 		      String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
 		      String conn = "conn_" + connection;
 		      INode connectionNode = NodeUtil.getNodeByUniqueName(node.getProcess(),connection,false);
 		      driverName = ElementParameterParser.getValue(connectionNode, "__DRIVER_CLASS__");
-            } else {
+          } else {
 				driverName = ElementParameterParser.getValue(node, "__DRIVER_CLASS__");
 			}
 			if(null != driverName && driverName.toLowerCase().contains("mysql")){
@@ -52,8 +51,8 @@ imports="
 %>
               stmt_<%=cid %>.setFetchSize(<%=cursorSize %>);
 <%
-			}
-			           
+			  }
+			
 		}
 		
 		public void createConnection(INode node) {
