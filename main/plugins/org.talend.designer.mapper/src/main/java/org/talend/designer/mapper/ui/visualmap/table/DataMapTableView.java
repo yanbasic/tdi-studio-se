@@ -211,9 +211,13 @@ public abstract class DataMapTableView extends Composite implements IDataMapTabl
 
     protected IDataMapTable abstractDataMapTable;
 
-    private Composite headerComposite;
+    protected Composite headerComposite;
 
-    private Label nameLabel;
+    protected GridData warnLabelData;
+
+    protected Label warningLabel;
+
+    protected Label nameLabel;
 
     private ToolItem minimizeButton;
 
@@ -484,6 +488,11 @@ public abstract class DataMapTableView extends Composite implements IDataMapTabl
         headerLayout.verticalSpacing = spacing;
         headerComposite.setLayout(headerLayout);
 
+        warningLabel = new Label(headerComposite, SWT.NONE);
+        warningLabel.setImage(ImageProvider.getImage(EImage.WARNING_ICON));
+        warnLabelData = new GridData();
+        warningLabel.setLayoutData(warnLabelData);
+        warnLabelData.exclude = true;
         nameLabel = new Label(headerComposite, SWT.NONE);
         nameLabel.setFont(FontProviderMapper.getFont(FontInfo.FONT_SYSTEM_BOLD));
         if (abstractDataMapTable instanceof OutputTable && ((OutputTable) abstractDataMapTable).getIsJoinTableOf() != null) {
