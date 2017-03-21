@@ -189,7 +189,7 @@ public class BuildJobManager {
             final String label = processItem.getProperty().getLabel();
             final IBuildJobHandler buildJobHandler = BuildJobFactory.createBuildJobHandler(processItem, context, version,
                     exportChoiceMap, jobExportType);
-            ProcessUtils.setJarWithContext(ProcessUtils.needToHaveContextInsideJar(processItem));
+            ProcessUtils.setJarWithContext(ProcessUtils.needsToHaveContextInsideJar(processItem));
             final IWorkspaceRunnable op = new IWorkspaceRunnable() {
 
                 @Override

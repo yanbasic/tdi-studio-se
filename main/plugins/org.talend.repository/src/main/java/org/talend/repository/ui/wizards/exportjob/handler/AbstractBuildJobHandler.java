@@ -214,7 +214,7 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler {
 
         // the running context is only useful, when binaries
         addArg(profileBuffer, isBinaries && isOptionChoosed(ExportChoice.needContext),
-                TalendMavenConstants.PROFILE_INCLUDE_CONTEXTS, ProcessUtils.jarNeedToContainsContext());
+                TalendMavenConstants.PROFILE_INCLUDE_CONTEXTS, ProcessUtils.jarNeedsToContainsContext());
 
         // for test
         addArg(profileBuffer, isOptionChoosed(ExportChoice.includeTestSource), TalendMavenConstants.PROFILE_INCLUDE_TEST_SOURCES);
