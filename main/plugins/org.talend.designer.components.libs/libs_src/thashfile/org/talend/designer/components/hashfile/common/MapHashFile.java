@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Iterator;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.talend.designer.components.hashfile.memory.AdvancedMemoryHashFile;
 
 public class MapHashFile {
@@ -70,7 +70,7 @@ public class MapHashFile {
 			Iterator<String> it = set.iterator();
 			while(it.hasNext()){
 				String key = it.next();
-				if(keyMap.get(key)!=null && keyMap.get(key).equals(root)){
+				if(root.equals(keyMap.get(key))){
 					this.resourceMap.remove(key);
 					this.keyMap.remove(key);
 					clearChildCache(key);
