@@ -31,6 +31,8 @@
 
 	boolean creatDir = ("true").equals(ElementParameterParser.getValue(node,"__CREATE_DIRECTORY__"));
 	
+	boolean failOn = ("true").equals(ElementParameterParser.getValue(node,"__FAILON__"));
+	
 	final boolean isLog4jEnabled = ("true").equals(ElementParameterParser.getValue(node.getProcess(), "__LOG4J_ACTIVATE__"));
 	
 	log4jFileUtil.componentStartInfo(node);
@@ -82,10 +84,21 @@
 								try	{				
 									org.talend.FileCopy.copyFile(srcFilePath, desFilePath, false);
 								} catch (java.lang.Exception e){ 
-									e.printStackTrace();
-									<%if(isLog4jEnabled) {%>
-									log.error("<%=cid%> - " + e.getMessage());
-									<%}%>
+<%
+									if (failOn) {
+%>
+										throw new RuntimeException("<%=cid%> - " + e.getMessage());
+<%
+									} else if(isLog4jEnabled) {
+%>
+										log.error("<%=cid%> - " + e.getMessage());
+<%
+									} else {
+%>
+										System.err.println("<%=cid%> - " + e.getMessage());
+<%
+									}
+%>
 								}
 							}
 	
@@ -100,11 +113,18 @@
 						desFolder.mkdirs();
 					} 
         		}else{
-        			System.err.println("Path name \""+rootFolder.getPath()+"\" does not denote a directory, or if an I/O error occurs.");
 <%
-					if(isLog4jEnabled) {
+					if (failOn) {
 %>
-					log.error("<%=cid%> - Path name \""+rootFolder.getPath()+"\" does not denote a directory, or if an I/O error occurs.");
+						throw new RuntimeException("Path name \"" + rootFolder.getPath() + "\" does not denote a directory, or if an I/O error occurs.");
+<%
+					} else if(isLog4jEnabled) {
+%>
+						log.error("<%=cid%> - Path name \""+rootFolder.getPath()+"\" does not denote a directory, or if an I/O error occurs.");
+<%
+					} else {
+%>
+						System.err.println("Path name \"" + rootFolder.getPath() + "\" does not denote a directory, or if an I/O error occurs.");
 <%
 					}
 %>
@@ -128,9 +148,22 @@
 
 		// here need check first, before mkdirs().
 		if (!srcFile_<%=cid %>.exists() || !srcFile_<%=cid %>.isFile()) {
-			throw new RuntimeException("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+<%
+			if (failOn) {
+%>
+				throw new RuntimeException("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+<%
+			} else if (isLog4jEnabled) {
+%>
+				log.error("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+<%
+			} else {
+%>
+				System.err.println("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+<%
+			}
+%>
 		}
-
         String desDirName_<%=cid %> = <%=destination %>;
 
 		String desFileName_<%=cid %> = <%if(rename){%> <%=destination_filename %> <%}else{%> srcFile_<%=cid %>.getName() <%}%>;
@@ -152,21 +185,40 @@
 				}
 <%
 			}
+			if (!failOn) {
 %>           
-			org.talend.FileCopy.copyFile(srcFile_<%=cid %>.getPath(), desFile_<%=cid %>.getPath(), <%=reFile %>);
+				try {
 <%
+			}
+%>
+					org.talend.FileCopy.copyFile(srcFile_<%=cid %>.getPath(), desFile_<%=cid %>.getPath(), <%=reFile %>);
+<%
+			if (!failOn) {
+%>
+				} catch (Exception e) {
+					System.err.println("<%=cid %> " + e.getMessage());
+				}
+<%
+			}
 			if(reFile) {
 %>
 				java.io.File isRemoved_<%=cid %> = new java.io.File(<%=fileName%>);
 				if(isRemoved_<%=cid %>.exists()) {
 <%
-				if(isLog4jEnabled) {
+					if (failOn) {
 %>
-					log.error("<%=cid%> - The source file \"" + srcFileName_<%=cid %> + "\" could not be removed from the folder because it is open or you only have read-only rights.");
+						throw new RuntimeException("<%=cid%> - The source file \"" + srcFileName_<%=cid %> + "\" could not be removed from the folder because it is open or you only have read-only rights.");
 <%
-				}
+					} else if(isLog4jEnabled) {
 %>
-					System.err.println("The source file could not be removed from the folder because it is open or you only have read-only rights.\n");
+						log.error("<%=cid%> - The source file \"" + srcFileName_<%=cid %> + "\" could not be removed from the folder because it is open or you only have read-only rights.");
+<%
+					} else {
+%>
+						System.err.println("The source file could not be removed from the folder because it is open or you only have read-only rights.\n");
+<%
+					}
+%>
 				} 
 <%
 				if(isLog4jEnabled) {
