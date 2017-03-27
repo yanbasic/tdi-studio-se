@@ -2127,11 +2127,10 @@ if(columnList != null && columnList.size() > 0) {
 				* But the current table could be absent under current user. 
 				*/
 				if (whetherExist_<%=cid%>) {
-					try (java.sql.Statement checkExistingTableInSpecifiedDatabase_<%=cid%> = conn_<%=cid%>.createStatement()) {
-						String dbName_<%=cid%> = <%=ElementParameterParser.getValue(node, "__DBNAME__")%>;
-						String tableNameToCreate_<%=cid%> = <%=ElementParameterParser.getValue(node, "__TABLE__")%>;
-						java.sql.ResultSet databasesUnderCurrentUser_<%=cid%> = checkExistingTableInSpecifiedDatabase_<%=cid%>.executeQuery(
-							"SELECT COUNT(*) FROM dbc.Tables WHERE databasename = '" + dbName_<%=cid%> + "' AND TableName = '" + tableNameToCreate_<%=cid%> + "'");
+					try (java.sql.PreparedStatement checkExistingTableInSpecifiedDatabase_<%=cid%> = conn_<%=cid%>.prepareStatement("SELECT COUNT(*) FROM dbc.Tables WHERE databasename = ? AND tablename = ?")) {
+						checkExistingTableInSpecifiedDatabase_<%=cid%>.setString(1, <%=ElementParameterParser.getValue(node, "__DBNAME__")%>);
+						checkExistingTableInSpecifiedDatabase_<%=cid%>.setString(2, <%=ElementParameterParser.getValue(node, "__TABLE__") %>);
+						java.sql.ResultSet databasesUnderCurrentUser_<%=cid%> = checkExistingTableInSpecifiedDatabase_<%=cid%>.executeQuery();
 						databasesUnderCurrentUser_<%=cid%>.next();
 						if (databasesUnderCurrentUser_<%=cid%>.getInt(1) == 0) whetherExist_<%=cid%> = false;
 						databasesUnderCurrentUser_<%=cid%>.close();
