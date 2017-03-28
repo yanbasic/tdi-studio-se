@@ -196,7 +196,17 @@
 			if (!failOn) {
 %>
 				} catch (Exception e) {
-					System.err.println("<%=cid %> " + e.getMessage());
+<%
+					if (isLog4jEnabled) {
+%>
+						log.error("<%=cid %> " + e.getMessage());
+<%
+					} else {
+%>
+						System.err.println("<%=cid %> " + e.getMessage());
+<%
+					}
+%>
 				}
 <%
 			}
