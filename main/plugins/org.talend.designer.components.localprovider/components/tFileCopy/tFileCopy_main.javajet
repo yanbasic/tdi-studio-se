@@ -113,18 +113,19 @@
 						desFolder.mkdirs();
 					} 
         		}else{
+					String errorMessageInputOutputErrorOccurs_<%=cid %> = String.format("Path name \"%s\" does not denote a directory, or if an I/O error occurs.", rootFolder.getPath());
 <%
 					if (failOn) {
 %>
-						throw new RuntimeException("Path name \"" + rootFolder.getPath() + "\" does not denote a directory, or if an I/O error occurs.");
+						throw new RuntimeException(errorMessageInputOutputErrorOccurs_<%=cid %>);
 <%
 					} else if(isLog4jEnabled) {
 %>
-						log.error("<%=cid%> - Path name \""+rootFolder.getPath()+"\" does not denote a directory, or if an I/O error occurs.");
+						log.error("<%=cid%>" +  errorMessageInputOutputErrorOccurs_<%=cid %>);
 <%
 					} else {
 %>
-						System.err.println("Path name \"" + rootFolder.getPath() + "\" does not denote a directory, or if an I/O error occurs.");
+						System.err.println(errorMessageInputOutputErrorOccurs_<%=cid %>);
 <%
 					}
 %>
@@ -148,18 +149,19 @@
 
 		// here need check first, before mkdirs().
 		if (!srcFile_<%=cid %>.exists() || !srcFile_<%=cid %>.isFile()) {
+			String errorMessageFileDoesnotExistsOrIsNotAFile_<%=cid%> = String.format("The source File \"%s\" does not exist or is not a file.", srcFileName_<%=cid %>);
 <%
 			if (failOn) {
 %>
-				throw new RuntimeException("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+				throw new RuntimeException(errorMessageFileDoesnotExistsOrIsNotAFile_<%=cid%>);
 <%
 			} else if (isLog4jEnabled) {
 %>
-				log.error("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+				log.error(errorMessageFileDoesnotExistsOrIsNotAFile_<%=cid%>);
 <%
 			} else {
 %>
-				System.err.println("The source File \"" + srcFileName_<%=cid %> + "\" does not exist or is not a file.");
+				System.err.println(errorMessageFileDoesnotExistsOrIsNotAFile_<%=cid%>);
 <%
 			}
 %>
@@ -214,18 +216,19 @@
 %>
 				java.io.File isRemoved_<%=cid %> = new java.io.File(<%=fileName%>);
 				if(isRemoved_<%=cid %>.exists()) {
+					String errorMessageCouldNotRemoveFile_<%=cid%> = String.format("<%=cid%> - The source file \"%s\" could not be removed from the folder because it is open or you only have read-only rights.", srcFileName_<%=cid %>);
 <%
 					if (failOn) {
 %>
-						throw new RuntimeException("<%=cid%> - The source file \"" + srcFileName_<%=cid %> + "\" could not be removed from the folder because it is open or you only have read-only rights.");
+						throw new RuntimeException(errorMessageCouldNotRemoveFile_<%=cid%>);
 <%
 					} else if(isLog4jEnabled) {
 %>
-						log.error("<%=cid%> - The source file \"" + srcFileName_<%=cid %> + "\" could not be removed from the folder because it is open or you only have read-only rights.");
+						log.error(errorMessageCouldNotRemoveFile_<%=cid%>);
 <%
 					} else {
 %>
-						System.err.println("The source file could not be removed from the folder because it is open or you only have read-only rights.\n");
+						System.err.println(errorMessageCouldNotRemoveFile_<%=cid%> + "\n");
 <%
 					}
 %>
