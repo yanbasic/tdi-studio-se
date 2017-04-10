@@ -420,6 +420,7 @@ class GenerateToolByDom4j{
 		
 		if (!orderHelper_<%=cid%>.isLastProcessedField("<%=tool.connName + "_" + currEleName%>") && !orderHelper_<%=cid%>.tailAppend("<%=tool.connName + "_" + currEleName%>")){
 			orderHelper_<%=cid%>.resetIndex("<%=tool.connName + "_" + currEleName%>");	
+			orderHelper_<%=cid%>.fillRecalculateOrderMap("<%=tool.connName + "_" + currEleName%>", true);
 		} else {			
 			orderHelper_<%=cid%>.incrementIndex("<%=tool.connName + "_" + currEleName%>");
 		}
