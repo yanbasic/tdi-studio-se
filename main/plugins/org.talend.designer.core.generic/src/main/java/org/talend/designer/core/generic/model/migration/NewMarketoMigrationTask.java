@@ -52,6 +52,10 @@ public class NewMarketoMigrationTask extends NewComponentFrameworkMigrationTask 
                     paramType.setValue("REST");
                 }
             }
+            // Correct typo in tMarketoInput's operation since 563
+            if ("OPERATION".equals(paramName) && "getMutipleLeads".equals(String.valueOf(value))) {
+                paramType.setValue("getMultipleLeads");
+            }
             // MAX_RETURN should be taken in account when
             // OPERATION=getMutipleLeads and LEAD_SELECTOR=LeadKeySelector
             // Otherwise, we feed the value with BATCH_SIZE.
