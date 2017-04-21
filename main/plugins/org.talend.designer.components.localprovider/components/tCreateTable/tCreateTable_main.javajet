@@ -2050,14 +2050,9 @@ if(columnList != null && columnList.size() > 0) {
 	            if(rsTable_<%=cid%>.next()) {
 	            	whetherExist_<%=cid%> = true;
 	            }     
-            <%
-            } else if("DB2".equalsIgnoreCase(dbType) || "TERADATA".equalsIgnoreCase(dbType)){
-                    if ( "TERADATA".equalsIgnoreCase(dbType)) {
-            %>
-                String dbSchema_<%=cid%> = <%=ElementParameterParser.getValue(node, "__DBNAME__")%>;
-            <%
-                    }
-            %>
+<%
+            } else if("DB2".equalsIgnoreCase(dbType)){
+%>
                 java.sql.DatabaseMetaData dbMetaData_<%=cid%> = conn_<%=cid%>.getMetaData();
                 java.sql.ResultSet rsTable_<%=cid%> = dbMetaData_<%=cid%>.getTables(null, null, null, new String[]{"TABLE"});
                 while(rsTable_<%=cid%>.next()) {
@@ -2118,6 +2113,37 @@ if(columnList != null && columnList.size() > 0) {
 	                    break;
 	                }
 	            }
+
+
+<%
+			} else if ("TERADATA".equalsIgnoreCase(dbType)) {
+%>
+					String dbSchema_<%=cid%> = dbname_<%=cid%>;
+<%
+					if (useExistingConnection) {
+%>
+						//dbSchema_<%=cid%> = dbSchema_<%=ElementParameterParser.getValue(node, "__CONNECTION_TERADATA__")%>;
+						String dbUser_<%=cid%> = (String) globalMap.get("username_<%=ElementParameterParser.getValue(node, "__CONNECTION_TERADATA__")%>");
+<%
+					} else {
+%>
+						dbSchema_<%=cid%> = <%=ElementParameterParser.getValue(node, "__DBNAME__")%>;
+<%
+					}
+%>
+
+					java.sql.DatabaseMetaData dbMetaData_<%=cid%> = conn_<%=cid%>.getMetaData();
+					java.sql.ResultSet rsTable_<%=cid%> = dbMetaData_<%=cid%>.getTables(null, null, null, new String[]{"TABLE"});
+					while(rsTable_<%=cid%>.next()) {
+						String table_<%=cid%> = rsTable_<%=cid%>.getString("TABLE_NAME");
+						String schema_<%=cid%> = rsTable_<%=cid%>.getString("TABLE_SCHEM");
+						if(table_<%=cid%>.equals<%if(!tableNameCaseSensitive){%>IgnoreCase<%}%>(<%=tableName%>) 
+							&& (schema_<%=cid%>.equals<%if(!tableNameCaseSensitive){%>IgnoreCase<%}%>(dbSchema_<%=cid%>) || (dbSchema_<%=cid%>.trim().length() ==0 && dbUser_<%=cid%>.equalsIgnoreCase(schema_<%=cid%>)))) {
+							whetherExist_<%=cid%> = true;
+							break;
+						}
+					}
+
 <%
             } else {
 %>
