@@ -251,7 +251,7 @@ imports="
             service_<%=cid%> = new org.jets3t.service.impl.rest.httpclient.GoogleStorageService(credentials_<%=cid%>,jobName+"/"+jobVersion+" (GPN:Talend)",null);
             service_<%=cid%>.getAccountOwner();
 
-            java.util.regex.Matcher m = org.talend.bigdata.launcher.google.dataproc.DataprocSparkJobUtil.GS_URI_PATTERN.matcher(<%=gsTempDir%>);
+            java.util.regex.Matcher m = org.talend.bigdata.launcher.google.dataproc.DataprocJobUtil.GS_URI_PATTERN.matcher(<%=gsTempDir%>);
             if (m.find()) {
                 String bucketName_<%=cid%> = m.group(1);
                 String objectKey_<%=cid%> = m.group(2);
