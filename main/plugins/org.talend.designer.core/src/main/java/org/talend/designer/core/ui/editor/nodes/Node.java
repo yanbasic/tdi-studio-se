@@ -3634,7 +3634,7 @@ public class Node extends Element implements IGraphicalNode {
     private static void getAllMainConnSourceNode(INode source, List<INode> list) {
         List<? extends IConnection> connections = source.getIncomingConnections();
         for (IConnection connection : connections) {
-            if(connection.getLineStyle() != EConnectionType.FLOW_MAIN){
+            if (connection.getLineStyle() != EConnectionType.FLOW_MAIN) {
                 continue;
             }
             INode node = connection.getSource();

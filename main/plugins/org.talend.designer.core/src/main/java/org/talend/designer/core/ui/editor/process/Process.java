@@ -111,6 +111,7 @@ import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.properties.RoutineItem;
 import org.talend.core.model.properties.User;
+import org.talend.core.model.relationship.RelationshipItemBuilder;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.model.routines.RoutinesUtil;
@@ -1925,7 +1926,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
     }
 
     private void saveRoutinesDependencies(ProcessType process) {
-        routinesDependencies = new ArrayList<RoutinesParameterType>();;
+        routinesDependencies = new ArrayList<RoutinesParameterType>();
         /* if process is joblet,parameters will be null,so that create a new parametertype for joblet */
         if (process.getParameters() == null) {
             ParametersType parameterType = TalendFileFactory.eINSTANCE.createParametersType();
@@ -2201,10 +2202,31 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             listParamType = nType.getElementParameter();
             String componentName = nType.getComponentName();
             IComponent component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
-            if (!isCurrentProject && component != null && (component.getComponentType() == EComponentType.JOBLET)
-                    && !componentName.contains(":")) { //$NON-NLS-1$
-                componentName = ProjectManager.getInstance().getProject(this.getProperty()).getLabel() + ":" + componentName; //$NON-NLS-1$
-                component = ComponentsFactoryProvider.getInstance().get(componentName, componentsType);
+            if (component != null) {
+                if (component.getComponentType() == EComponentType.JOBLET) {
+                    if (!isCurrentProject && !componentName.contains(":")) { //$NON-NLS-1$
+                        component = getComponentFromRefWithProjectName(componentName, new Project(ProjectManager.getInstance()
+                                .getProject(this.getProperty())));
+                    }
+                    if (component != null) {
+                        for (int j = 0; j < listParamType.size(); j++) {
+                            ElementParameterType pType = (ElementParameterType) listParamType.get(j);
+                            if (EParameterName.PROCESS_TYPE_VERSION.name().equals(pType.getName())) {
+                                String jobletVersion = pType.getValue();
+                                if (!RelationshipItemBuilder.LATEST_VERSION.equals(jobletVersion)) {
+                                    IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault()
+                                            .getService(IJobletProviderService.class);
+                                    if (service != null) {
+                                        String componentProcessId = service.getJobletComponentItem(component).getId();
+                                        component = service.setPropertyForJobletComponent(componentProcessId, jobletVersion);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
             }
             if (component == null) {
                 unloadedNode.add(nType);
@@ -2242,6 +2264,21 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                 createDummyNode(unloadedNode.get(i), nodesHashtable);
             }
         }
+    }
+
+    private IComponent getComponentFromRefWithProjectName(String componentName, Project project) {
+        String componentNameWithPro = project.getLabel() + ":" + componentName; //$NON-NLS-1$
+        IComponent component = ComponentsFactoryProvider.getInstance().get(componentNameWithPro, componentsType);
+        if (component == null) {
+            List<Project> referencedProjects = ProjectManager.getInstance().getReferencedProjects(project);
+            for (Project refPro : referencedProjects) {
+                component = getComponentFromRefWithProjectName(componentName, refPro);
+                if (component != null) {
+                    return component;
+                }
+            }
+        }
+        return component;
     }
 
     protected Node createDummyNode(NodeType nType, Hashtable<String, Node> nodesHashtable) {
@@ -2340,7 +2377,8 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
                     IJobletProviderService.class);
             if (service != null) {
-                service.reloadJobletProcess(nc);
+                // reload only for stuido ,because joblet can be changed in the job editor
+                service.reloadJobletProcess(nc, !CommonsPlugin.isHeadless());
             }
         }
         return nc;
@@ -4375,16 +4413,6 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                     }
                 }
             }
-        }
-
-    }
-
-    private void addNewJobletNode(JobletContainer jobletContainer) {
-        IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
-                IJobletProviderService.class);
-        if (service != null) {
-            service.checkAddNodes(jobletContainer);
-            service.checkDeleteNodes(jobletContainer);
         }
 
     }
