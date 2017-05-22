@@ -1579,14 +1579,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                     if (container instanceof AbstractJobletContainer) {
                         if (checkJoblet && container.getNode().isJoblet()) {
                             AbstractJobletContainer jobletCon = (AbstractJobletContainer) container;
-                            boolean needUpdate = false;
-                            IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault()
-                                    .getService(IJobletProviderService.class);
-                            if (service != null) {
-                                needUpdate = service.checkModify(jobletCon);
-                            }
-
-                            saveJobletNode(jobletCon, needUpdate);
+                            saveJobletNode(jobletCon);
                         }
 
                         saveNode(fileFact, processType, nList, cList, container.getNode(), factory);
@@ -1597,13 +1590,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             } else if (element instanceof AbstractJobletContainer) {
                 if (checkJoblet && ((AbstractJobletContainer) element).getNode().isJoblet()) {
                     AbstractJobletContainer jobletCon = (AbstractJobletContainer) element;
-                    boolean needUpdate = false;
-                    IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
-                            IJobletProviderService.class);
-                    if (service != null) {
-                        needUpdate = service.checkModify(jobletCon);
-                    }
-                    saveJobletNode(jobletCon, needUpdate);
+                    saveJobletNode(jobletCon);
                 }
 
                 saveNode(fileFact, processType, nList, cList, ((NodeContainer) element).getNode(), factory);
@@ -4388,7 +4375,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
         checkProcess();
     }
 
-    private void saveJobletNode(AbstractJobletContainer jobletContainer, boolean needUpdate) {
+    private void saveJobletNode(AbstractJobletContainer jobletContainer) {
         INode jobletNode = jobletContainer.getNode();
         IProcess jobletProcess = jobletNode.getComponent().getProcess();
         if (jobletProcess == null) {
@@ -4401,16 +4388,8 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                 IJobletProviderService service = (IJobletProviderService) GlobalServiceRegister.getDefault().getService(
                         IJobletProviderService.class);
                 if (service != null) {
-                    List<INode> addNodes = service.checkAddNodes(jobletContainer);
-                    List<INode> deleteNodes = new ArrayList<INode>();
-                    if (addNodes.size() <= 0) {
-                        deleteNodes.addAll(service.checkDeleteNodes(jobletContainer));
-                    } else {
-                        return;
-                    }
-                    if (needUpdate && (addNodes.size() <= 0) && (deleteNodes.size() <= 0)) {
-                        service.saveJobletNode(jobletItem, jobletContainer);
-                    }
+                    service.saveJobletNode(jobletItem, jobletContainer);
+
                 }
             }
         }
