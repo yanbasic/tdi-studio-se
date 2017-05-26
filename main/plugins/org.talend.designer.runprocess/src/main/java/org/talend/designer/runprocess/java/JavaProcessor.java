@@ -1701,7 +1701,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                 if (null != samValue) {
                     samEnabled = (Boolean) samValue;
                 }
-                if (samEnabled && slEnabled) {
+                if (samEnabled && slEnabled && oidcEnabled) {
                     break;
                 }
             }
