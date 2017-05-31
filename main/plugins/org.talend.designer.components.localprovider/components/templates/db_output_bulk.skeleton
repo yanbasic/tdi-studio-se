@@ -2656,7 +2656,7 @@ public class CLASS {
             return true;
         }
         
-		protected String generateSetBooleanForNullableKeyStmt(String dynCol,Column column, int index, String incomingConnName, String cid,
+        protected String generateSetBooleanForNullableKeyStmt(String dynCol,Column column, int index, String incomingConnName, String cid,
                 int actionType) {
             String dynamicIndex=""+index;
             if(dynCol!=null){
@@ -2673,10 +2673,10 @@ public class CLASS {
             StringBuilder setStmt = new StringBuilder();
 
             setStmt.append(prefix + cid + ".setInt(" + dynamicIndex + ", ((" + incomingConnName + "." + column.getName()+"==null) "
-					+"|| (" + incomingConnName + "." + column.getName()+".equals(\"\")))?1:0);\r\n");
+                    +"|| (" + incomingConnName + "." + column.getName()+".equals(\"\")))?1:0);\r\n");
             return setStmt.toString();
-        } 
-		
+        }
+
         public void whereStmtSupportNull(StringBuilder updateWhereStmt, Column column) {
             boolean whereSupportNull = false;
             String columnName = column.getColumnName();
