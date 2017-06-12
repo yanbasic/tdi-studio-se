@@ -16,7 +16,7 @@
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective class="org.talend.componentdesigner.ui.Perspective"
 			id="org.talend.componentdesigner.perspective"
-			name="Component Designer">
+			name="Component Designer (Deprecated)">
 		</perspective>
 	</extension>
 	<extension point="org.eclipse.ui.perspectiveExtensions">
