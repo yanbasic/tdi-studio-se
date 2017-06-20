@@ -549,7 +549,7 @@ public abstract class DbGenerationManager {
         }
         sqlQuery = handleQuery(sqlQuery);
         queryColumnsName = handleQuery(queryColumnsName);
-          
+
         return sqlQuery;
     }
     
