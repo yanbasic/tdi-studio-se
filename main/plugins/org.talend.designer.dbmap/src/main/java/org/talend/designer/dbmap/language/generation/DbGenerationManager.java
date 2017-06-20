@@ -295,7 +295,7 @@ public abstract class DbGenerationManager {
                     // outputTable = removeUnmatchingEntriesWithColumnsOfMetadataTable(outputTable, metadataTable);
                 }
             }
-            appendSqlQuery(sb, "\"", false);
+            appendSqlQuery(sb, "\"", false); //$NON-NLS-1$
             appendSqlQuery(sb, DbMapSqlConstants.SELECT);
             appendSqlQuery(sb, DbMapSqlConstants.NEW_LINE);
             appendSqlQuery(sb, tabSpaceString);
@@ -549,9 +549,7 @@ public abstract class DbGenerationManager {
         }
         sqlQuery = handleQuery(sqlQuery);
         queryColumnsName = handleQuery(queryColumnsName);
-        handleQueryEnd(queryColumnsSegments);
-        handleQueryEnd(querySegments);
-        
+          
         return sqlQuery;
     }
     
@@ -564,24 +562,6 @@ public abstract class DbGenerationManager {
             if (segment.contains(context)) {
                 segment = segment.replaceAll("\\b" + context + "\\b", "\" +" + context + "+ \""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
                 querySegments.set(i, segment);
-            }
-        }
-    }
-    
-    protected void handleQueryEnd(List<String> querySegments) {
-        if (querySegments == null || querySegments.size() == 0) {
-            return;
-        }
-        for (int i = querySegments.size() - 1; i >= 0; i--) {
-            String value = querySegments.get(i);
-            if (value.trim().length() > 0) {
-                if (value.trim().endsWith("\\\"")) {
-                    value = value + " \""; //$NON-NLS-1$
-                } else if (value.trim().endsWith("+ \"")) {//$NON-NLS-1$
-                    value = value.substring(0, value.lastIndexOf("+ \"")); //$NON-NLS-1$
-                }
-                querySegments.set(i, value);
-                break;
             }
         }
     }

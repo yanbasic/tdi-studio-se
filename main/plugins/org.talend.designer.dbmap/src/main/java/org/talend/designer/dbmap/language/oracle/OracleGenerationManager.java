@@ -391,8 +391,6 @@ public class OracleGenerationManager extends DbGenerationManager {
         }
         sqlQuery = handleQuery(sqlQuery);
         queryColumnsName = handleQuery(queryColumnsName);
-        handleQueryEnd(queryColumnsSegments);
-        handleQueryEnd(querySegments);
         
         return sqlQuery;
     }
