@@ -792,7 +792,7 @@ public class TalendEditorDropTargetListener extends TemplateTransferDropTargetLi
                 }
             }
         }
-        if (created) {
+        if (true) {
             RepositoryPlugin.getDefault().getDesignerCoreService().switchToCurContextsView();
         }
     }
