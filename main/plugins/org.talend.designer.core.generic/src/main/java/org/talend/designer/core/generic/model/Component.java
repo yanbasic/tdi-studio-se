@@ -1226,6 +1226,8 @@ public class Component extends AbstractBasicComponent {
         ArrayList<ECodePart> theCodePartList = new ArrayList<>();
         theCodePartList.add(ECodePart.BEGIN);
         theCodePartList.add(ECodePart.MAIN);
+        theCodePartList.add(ECodePart.PROCESS_DATA_BEGIN);
+        theCodePartList.add(ECodePart.PROCESS_DATA_END);
         theCodePartList.add(ECodePart.END);
         theCodePartList.add(ECodePart.FINALLY);
         return theCodePartList;
