@@ -20,15 +20,15 @@ if(resourceMap.containsKey("producer_<%=cid %>")) try {
 }
 if(resourceMap.containsKey("session_<%=cid %>")) try {
 	((javax.jms.Session)resourceMap.get("session_<%=cid %>")).close();
-} catch (Exception e){
-    log.error(currentComponent + " " + e.getMessage(), e);
+} catch (Exception e_<%=cid%>){
+    log.error(currentComponent + " " + e_<%=cid%>.getMessage(), e_<%=cid%>);
 } finally {
     resourceMap.remove("session_<%=cid %>");
 }
 if(resourceMap.containsKey("connection_<%=cid %>")) try {
 	((javax.jms.Connection)resourceMap.get("connection_<%=cid %>")).close();
-} catch (Exception e){
-    log.error(currentComponent + " " + e.getMessage(), e);
+} catch (Exception e_<%=cid%>){
+    log.error(currentComponent + " " + e_<%=cid%>.getMessage(), e_<%=cid%>);
 } finally {
 	resourceMap.remove("connection_<%=cid %>");
 }
