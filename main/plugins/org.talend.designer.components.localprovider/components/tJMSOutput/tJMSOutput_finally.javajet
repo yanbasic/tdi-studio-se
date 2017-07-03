@@ -11,24 +11,24 @@ INode node = (INode)codeGenArgument.getArgument();
 String cid = node.getUniqueName();
 log = new LogUtil(node);
 %>
-if(globalMap.containsKey("producer_<%=cid %>")) try {
-	((javax.jms.MessageProducer)globalMap.get("producer_<%=cid %>")).close();
+if(resourceMap.containsKey("producer_<%=cid %>")) try {
+	((javax.jms.MessageProducer)resourceMap.get("producer_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-    globalMap.remove("producer_<%=cid %>");
+    resourceMap.remove("producer_<%=cid %>");
 }
-if(globalMap.containsKey("session_<%=cid %>")) try {
-	((javax.jms.Session)globalMap.get("session_<%=cid %>")).close();
+if(resourceMap.containsKey("session_<%=cid %>")) try {
+	((javax.jms.Session)resourceMap.get("session_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-    globalMap.remove("session_<%=cid %>");
+    resourceMap.remove("session_<%=cid %>");
 }
-if(globalMap.containsKey("connection_<%=cid %>")) try {
-	((javax.jms.Connection)globalMap.get("connection_<%=cid %>")).close();
+if(resourceMap.containsKey("connection_<%=cid %>")) try {
+	((javax.jms.Connection)resourceMap.get("connection_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-	globalMap.remove("connection_<%=cid %>");
+	resourceMap.remove("connection_<%=cid %>");
 }

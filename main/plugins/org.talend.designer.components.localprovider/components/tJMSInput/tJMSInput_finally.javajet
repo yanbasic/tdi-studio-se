@@ -14,24 +14,24 @@ log = new LogUtil(node);
 String timeout=ElementParameterParser.getValue(node, "__TIMEOUT__");
 String maxMsg=ElementParameterParser.getValue(node, "__MAX_MSG__");
 %>
-if(globalMap.containsKey("consumer_<%=cid %>")) try {
-	((javax.jms.MessageConsumer)globalMap.get("consumer_<%=cid %>")).close();
+if(resourceMap.containsKey("consumer_<%=cid %>")) try {
+	((javax.jms.MessageConsumer)resourceMap.get("consumer_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-    globalMap.remove("consumer_<%=cid %>");
+    resourceMap.remove("consumer_<%=cid %>");
 }
-if(globalMap.containsKey("session_<%=cid %>")) try {
-	((javax.jms.Session)globalMap.get("session_<%=cid %>")).close();
+if(resourceMap.containsKey("session_<%=cid %>")) try {
+	((javax.jms.Session)resourceMap.get("session_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-    globalMap.remove("session_<%=cid %>");
+    resourceMap.remove("session_<%=cid %>");
 }
-if(globalMap.containsKey("connection_<%=cid %>")) try {
-	((javax.jms.Connection)globalMap.get("connection_<%=cid %>")).close();
+if(resourceMap.containsKey("connection_<%=cid %>")) try {
+	((javax.jms.Connection)resourceMap.get("connection_<%=cid %>")).close();
 } catch (Exception e){
     log.error(currentComponent + " " + e.getMessage(), e);
 } finally {
-    globalMap.remove("connection_<%=cid %>");
+    resourceMap.remove("connection_<%=cid %>");
 }
