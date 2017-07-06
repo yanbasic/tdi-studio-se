@@ -50,7 +50,7 @@ if(hasInput){
 
         if (input_columnList!=null && !input_columnList.isEmpty() && (hasMainIrToRow || hasRejectIrToRow)) {
 	%>
-	} //end of while loop
+	} //end of data processing while block
 	if (writer_<%=cid%> instanceof org.talend.components.api.component.runtime.WriterWithFeedback) {
     	((org.talend.components.api.component.runtime.WriterWithFeedback) writer_<%=cid%>).cleanFeedbackData();
     }

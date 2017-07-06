@@ -569,13 +569,6 @@ public class CodeGenerator implements ICodeGenerator {
                     codeComponent.append(generateComponentCode(subProcess, node, ECodePart.END, incomingName, typeGen));
                     // }
                     if (node.getComponent() instanceof Component) {
-                        // if (((Component) node.getComponent()).getComponentDefinition().isRejectAfterClose()) {
-                        // codeComponent.append(generateTypedComponentCode(EInternalTemplate.HANDLE_REJECTS_START, node,
-                        // ECodePart.END, incomingName, subProcess));
-                        // codeComponent.append(generatesTreeCode(subProcess, node, ECodePart.MAIN, typeGen));
-                        // codeComponent.append(generateTypedComponentCode(EInternalTemplate.HANDLE_REJECTS_END, node,
-                        // ECodePart.END, incomingName, subProcess));
-                        // }
                         Set<ConnectorTopology> supportedTopologies = ((Component) node.getComponent()).getComponentDefinition()
                                 .getSupportedConnectorTopologies();
                         List<? extends IConnection> outgoingConns = node.getOutgoingSortedConnections();

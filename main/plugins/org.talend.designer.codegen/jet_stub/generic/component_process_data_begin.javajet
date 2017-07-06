@@ -98,8 +98,19 @@ if(hasInput){
             <%
             }
             if(mainIrToRow != null || rejectIrToRow != null) {
+            	StringBuilder loopConditionBuilder = new StringBuilder();
+            	if(mainIrToRow != null) {	
+            		loopConditionBuilder.append("outgoingMainRecordsIt_").append(cid).append(".hasNext()");
+            	} 
+            	if(mainIrToRow != null && rejectIrToRow != null) {
+            		loopConditionBuilder.append(" || ");
+            	} 
+            	if(rejectIrToRow != null) { 
+            		loopConditionBuilder.append("outgoingRejectRecordsIt_").append(cid).append(".hasNext()");
+            	}
+            	String loopCondition = loopConditionBuilder.toString();
             %>
-            	while(<%if(mainIrToRow != null){%>outgoingMainRecordsIt_<%=cid%>.hasNext()<%} if(mainIrToRow != null && rejectIrToRow != null) {%> || <%} if(rejectIrToRow != null) { %> outgoingRejectRecordsIt_<%=cid%>.hasNext()<%}%>) {
+            	while(<%=loopCondition%>) { //Start of data processing while block
             		<%if(mainIrToRow != null) {%>
             			if(outgoingMainRecordsIt_<%=cid%>.hasNext()) {
             				<%=mainIrToRow.getConnection().getName()%> = new <%=mainIrToRow.getConnection().getName() %>Struct();
