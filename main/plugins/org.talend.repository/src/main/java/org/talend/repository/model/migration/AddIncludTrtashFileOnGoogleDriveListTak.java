@@ -64,9 +64,7 @@ public class AddIncludTrtashFileOnGoogleDriveListTak extends AbstractJobMigratio
     public ExecutionResult execute(Item item) {
         ProcessType processType = getProcessType(item);
 
-        System.out.println("YPL - AAAA");
         if (processType == null) {
-            System.out.println("YPL - BBBB");
             return ExecutionResult.NOTHING_TO_DO;
         }
         
@@ -74,12 +72,10 @@ public class AddIncludTrtashFileOnGoogleDriveListTak extends AbstractJobMigratio
             
             @Override
             public void transform(NodeType node) {
-                System.out.println("YPL - EEEEEEEEEEEEEEEEEEEEEEE");
                 ElementParameterType includeTrashFiles = ComponentUtilities.getNodeProperty(node, INCLUDTRASHFILES_PROPERTY_NAME);
                 
                 // If INCLUDTRASHFILES_PROPERTY_NAME property doesn't exist, create with true to keep the same behavior as before 
                 if(includeTrashFiles == null) {
-                    System.out.println("YPL - FFFFFFFFFFFFFFFFFFFF");
                     ComponentUtilities.addNodeProperty(node, INCLUDTRASHFILES_PROPERTY_NAME, INCLUDTRASHFILES_PROPERTY_TYPE);
                     ComponentUtilities.getNodeProperty(node, INCLUDTRASHFILES_PROPERTY_NAME).setValue("true");
                 }
@@ -90,13 +86,11 @@ public class AddIncludTrtashFileOnGoogleDriveListTak extends AbstractJobMigratio
         IComponentFilter filter = new NameComponentFilter(GOOGLE_DRIVE_LIST_NAME);
         
         try {
-            System.out.println("YPL - CCCC");
             ModifyComponentsAction.searchAndModify(item,
                                                        processType,
                                                        filter, 
                                                        Arrays.<IComponentConversion> asList(addIncludTrashProperty));
         } catch (PersistenceException e) {
-            System.out.println("YPL - DDDD");
             ExceptionHandler.process(e);
             return ExecutionResult.FAILURE;
         }
