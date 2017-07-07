@@ -2943,8 +2943,8 @@
         <projecttask
               beforeLogon="false"
               breaks="6.5.0"
-              class="org.talend.repository.model.migration.AddIncludTrtashFileOnGoogleDriveListTak"
-              id="org.talend.repository.model.migration.AddIncludTrtashFileOnGoogleDriveListTak"
+              class="org.talend.repository.model.migration.AddIncludTrashFilesOnGoogleDriveListTask"
+              id="org.talend.repository.model.migration.AddIncludTrashFilesOnGoogleDriveListTask"
               name="Configure the new INCLUDTRASHFILES property to 'true' in order to keep the same behavior as before"
               version="6.5.1">
         </projecttask>

@@ -38,7 +38,7 @@ import org.talend.migration.IMigrationTask.ExecutionResult;
  * @author ypiel
  * @since 6.5.1
  */
-public class AddIncludTrtashFileOnGoogleDriveListTak extends AbstractJobMigrationTask {
+public class AddIncludTrashFilesOnGoogleDriveListTask extends AbstractJobMigrationTask {
     
     /**
      * The component to update. 
