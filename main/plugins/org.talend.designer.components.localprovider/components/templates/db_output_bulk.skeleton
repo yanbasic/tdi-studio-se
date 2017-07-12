@@ -2250,7 +2250,7 @@ public class CLASS {
                 boolean isDBTypeEqualsYear = column.getColumn().getType().equalsIgnoreCase("year");
                 setStmt.append("if(" + incomingConnName + "." + column.getName() + " != null) {\r\n");
                 setStmt.append("date_" + cid + " = " + incomingConnName + "." + column.getName() + ".getTime();\r\n");
-                if (column.getColumn().getType().equalsIgnoreCase("year")) {
+                if (isDBTypeEqualsYear) {
                     setStmt.append("java.util.Calendar yearCalendar_" + cid + " = new java.util.GregorianCalendar();\r\n");
                     setStmt.append("yearCalendar_" + cid + ".setTimeInMillis(date_" + cid + ");\r\n");
                     setStmt.append("\r\n");
@@ -2263,15 +2263,15 @@ public class CLASS {
                 }
                 setStmt.append("} else {");
 
-                if (column.getColumn().getType().equalsIgnoreCase("year")) {
+                if (isDBTypeEqualsYear) {
                     setStmt.append("\t" + prefix + cid + ".setInt(" + index + ", yearValue_" + cid + ");\r\n");
                 } else {
                     setStmt.append(prefix + cid + ".setTimestamp(" + index + ", new java.sql.Timestamp(date_" + cid + "));\r\n");
                 }
-                    setStmt.append("}\r\n");
-                    setStmt.append("} else {\r\n");
-                    setStmt.append(prefix + cid + ".setNull(" + index + ", java.sql.Types.DATE);\r\n");
-                    setStmt.append("}\r\n");
+                setStmt.append("}\r\n");
+                setStmt.append("} else {\r\n");
+                setStmt.append(prefix + cid + ".setNull(" + index + ", java.sql.Types.DATE);\r\n");
+                setStmt.append("}\r\n");
 
             } else {
                 setStmt.append(prefix + cid + ".set" + typeToGenerate + "(" + index + ", " + incomingConnName + "." + column.getName() + ");\r\n");
