@@ -234,10 +234,6 @@ imports="
 %>
 										<%dbInputBeginUtil.generateOthersResultSet(firstConnName, column,  currentColNo,  "Date");%>
 <%
-									} else if ("mysql_id".equalsIgnoreCase(dbms) && "YEAR".equalsIgnoreCase(column.getType()) && (dbInputBeginUtil instanceof DBInputBeginUtil)){
-%>
-										<%((DBInputBeginUtil)dbInputBeginUtil).generateYearResultSet(firstConnName, column, currentColNo);%>
-<%
 									}else{
 %>
 										<%dbInputBeginUtil.generateTimestampResultSet(firstConnName, column, currentColNo);%>
