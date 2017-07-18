@@ -74,7 +74,7 @@ imports="
 			String yearStringValue_<%=cid %> = rs_<%=cid%>.getString(<%if(isDynamic){%>column_index_<%=cid%><%}else{%><%=currentColNo%><%}%>);
 			if (null != yearStringValue_<%=cid %>) {
 				Integer yearValue_<%=cid%> = rs_<%=cid%>.getInt(<%if(isDynamic){%>column_index_<%=cid%><%}else{%><%=currentColNo%><%}%>);
-				calendar_<%=cid %>.set(yearValue_<%=cid%>, 0, 0);
+				calendar_<%=cid %>.set(yearValue_<%=cid%>, 0, 1);
 				<%=firstConnName%>.<%=column.getLabel()%> = calendar_<%=cid %>.getTime();
 			} else {
 				<%=firstConnName%>.<%=column.getLabel()%> = null;
