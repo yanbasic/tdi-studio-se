@@ -11,6 +11,8 @@ imports="
     org.talend.core.model.metadata.types.JavaTypesManager
     org.talend.core.model.metadata.types.JavaType
     java.util.List
+    java.util.Map
+    java.util.HashMap
 " 
 %>
 <%
@@ -19,6 +21,8 @@ imports="
 		String cid = node.getUniqueName();
 		NodeParamsHelper helper = new NodeParamsHelper(node);
 
+		String exportExtCacheName = "tGoogleDriveGet_exportExt";
+		
 		boolean useExistingConn = helper.getBoolParam("__USE_EXISTING_CONNECTION__");
 		String connection = helper.getStringParam("__CONNECTION__");
 	    String connectionKey = "\"conn_" + connection+"\"";
@@ -27,8 +31,15 @@ imports="
 
 		boolean storeToLocal = helper.getBoolParam("__STORE_TO_LOCAL__");
 		String outputFile = helper.getStringParam("__OUTPUT__");
+		boolean addExt = helper.getBoolParam("__OUTPUT_EXT__"); 
 
 		boolean dieOnError = helper.getBoolParam("__DIE_ON_ERROR__");
+		
+		String exportDocumentType = helper.getStringParam("__EXPORT_DOCUMENT__");
+		String exportDrawType = helper.getStringParam("__EXPORT_DRAWING__");
+		String exportPresentationType = helper.getStringParam("__EXPORT_PRESENTATION__");
+		String exportSpreadSheetType = helper.getStringParam("__EXPORT_SPREADSHEET__");
+
 		
         String dataOutputConnection = null;
 	    
@@ -39,7 +50,43 @@ imports="
 	        	break;
 	        } // if(conn) end
 	    } // for(conns) end
+	    
+	    if(addExt) { // if add extension
 %>
+// Assign an extension to each export type mime
+java.util.Map<String, String> <%=cid%>_exportExt = (java.util.Map<String, String>)globalMap.get("<%=exportExtCacheName%>");
+if(<%=cid%>_exportExt == null) {
+    <%=cid%>_exportExt = new java.util.HashMap<>();
+    <%=cid%>_exportExt.put("application/vnd.oasis.opendocument.presentation", "odp");
+    <%=cid%>_exportExt.put("application/pdf", "pdf");
+    <%=cid%>_exportExt.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", "pptx");
+    <%=cid%>_exportExt.put("image/svg+xml", "svg");
+    <%=cid%>_exportExt.put("image/png", "png");
+    <%=cid%>_exportExt.put("image/jpeg", "jpg");
+    <%=cid%>_exportExt.put("application/x-vnd.oasis.opendocument.spreadsheet", "ods");
+    <%=cid%>_exportExt.put("text/tab-separated-values", "csv");
+    <%=cid%>_exportExt.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx");
+    <%=cid%>_exportExt.put("text/csv", "csv");
+    <%=cid%>_exportExt.put("application/zip", "zip");
+    <%=cid%>_exportExt.put("application/vnd.oasis.opendocument.spreadsheet", "ods");
+    <%=cid%>_exportExt.put("application/rtf", "rtf");
+    <%=cid%>_exportExt.put("application/vnd.oasis.opendocument.text", "odt");
+    <%=cid%>_exportExt.put("text/html", "html");
+    <%=cid%>_exportExt.put("text/plain", "txt");
+    <%=cid%>_exportExt.put("application/epub+zip", "zip");
+    <%=cid%>_exportExt.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
+    
+    globalMap.put("<%=exportExtCacheName%>", <%=cid%>_exportExt);
+}
+<%      } // end if add extension %>
+
+String <%=cid%>_outputFileExt = "";
+java.util.Map<String, String> <%=cid%>_exportMapping = new java.util.HashMap();
+<%=cid%>_exportMapping.put("application/vnd.google-apps.document", "<%=exportDocumentType%>");
+<%=cid%>_exportMapping.put("application/vnd.google-apps.drawing", "<%=exportDrawType%>");
+<%=cid%>_exportMapping.put("application/vnd.google-apps.presentation", "<%=exportPresentationType%>");
+<%=cid%>_exportMapping.put("application/vnd.google-apps.spreadsheet", "<%=exportSpreadSheetType%>");
+
 com.google.api.services.drive.Drive <%=cid%>_client;
 <%
 		if(!useExistingConn){
@@ -108,28 +155,63 @@ com.google.api.services.drive.Drive <%=cid%>_client;
 		{
 			String <%=cid%>_fileId = <%=cid%>_files.getItems().get(0).getId();
 			com.google.api.services.drive.model.File <%=cid%>_file = <%=cid%>_client.files().get(<%=cid%>_fileId).execute();
-			com.google.api.client.http.HttpResponse resp = <%=cid%>_client.getRequestFactory().buildGetRequest(new com.google.api.client.http.GenericUrl(<%=cid%>_file.getDownloadUrl())).execute();
+			
+			String <%=cid%>_downloadUrl = <%=cid%>_file.getDownloadUrl();
+
+			// Google document can't be downloaded, download url is null, they must be exported
+			if(<%=cid%>_downloadUrl == null) {
+				java.util.Map<String, String> <%=cid%>_exportLinks = <%=cid%>_file.getExportLinks();
+				
+                if(<%=cid%>_exportLinks != null) {
+                    String <%=cid%>_exportTo = <%=cid%>_exportMapping.get(<%=cid%>_file.getMimeType());
+                    <%=cid%>_downloadUrl = <%=cid%>_exportLinks.get(<%=cid%>_exportTo);
+<%
+                if(addExt) {
+%>              
+                    <%=cid%>_outputFileExt = "."+<%=cid%>_exportExt.get(<%=cid%>_exportTo);
+<%
+                }
+%>
+                }
+			}
+
+			// If the document has no download url and can't be exported
+			boolean <%=cid%>_isRejected = <%=cid%>_downloadUrl == null;  
+			if(<%=cid%>_isRejected) {
+				System.out.println("rejected file " + <%=cid%>_file.getTitle());
+			}
+			else {
+			    com.google.api.client.http.HttpResponse resp = <%=cid%>_client.getRequestFactory().buildGetRequest(new com.google.api.client.http.GenericUrl(<%=cid%>_downloadUrl)).execute();
 <%
 		if (storeToLocal){
 %>
-			java.io.File <%=cid%>_outputFile = new java.io.File(<%=outputFile%>);
-			java.io.FileOutputStream <%=cid%>_outputStream = new java.io.FileOutputStream(<%=cid%>_outputFile);
-			resp.download(<%=cid%>_outputStream);
+            String <%=cid%>_outputFileName = <%=outputFile%>;
+<%
+            if(addExt) {
+%>
+                <%=cid%>_outputFileName = <%=cid%>_outputFileName+((<%=cid%>_outputFileName.endsWith(<%=cid%>_outputFileExt)) ? "" : <%=cid%>_outputFileExt);
+<%
+            }
+%>
+    			java.io.File <%=cid%>_outputFile = new java.io.File(<%=cid%>_outputFileName);
+    			java.io.FileOutputStream <%=cid%>_outputStream = new java.io.FileOutputStream(<%=cid%>_outputFile);
+    			resp.download(<%=cid%>_outputStream);
 <%
 		}
 		if(dataOutputConnection != null){
 %>
-			<%=dataOutputConnection%>.content = 
+			    <%=dataOutputConnection%>.content = 
 <%
 			if(storeToLocal){
 %>
-				new java.io.FileInputStream(<%=cid%>_outputFile);
+				    new java.io.FileInputStream(<%=cid%>_outputFile);
 <%
 			}else{
 %>
-				resp.getContent();
+				    resp.getContent();
 <%
 			}
 		}
 %>
+			}
 		}
