@@ -52,7 +52,7 @@ if(hasInput){
 	%>
 	} //end of data processing while block
 	if (writer_<%=cid%> instanceof org.talend.components.api.component.runtime.WriterWithFeedback) {
-    	((org.talend.components.api.component.runtime.WriterWithFeedback) writer_<%=cid%>).cleanFeedbackData();
+    	((org.talend.components.api.component.runtime.WriterWithFeedback) writer_<%=cid%>).cleanWrites();
     }
 	<%
 		}
