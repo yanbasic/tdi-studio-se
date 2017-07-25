@@ -11,6 +11,6 @@
 	String cid = node.getUniqueName();
 %>
 	}
-} catch (Exception | Error e_<%=cid%>) {
+} catch (Exception e_<%=cid%>) {
 	logIgnoredError(String.format("<%=cid%> - tLogCatcher failed to process log message(s) due to internal error: %s", e_<%=cid%>), e_<%=cid%>);
 }
