@@ -102,42 +102,42 @@
 	<ADVANCED_PARAMETERS>
 	    <PARAMETER NAME="EXPORT_DOCUMENT" FIELD="CLOSED_LIST" NUM_ROW="110">
 	        <ITEMS DEFAULT="WORD">
-	        	<ITEM NAME="EPUB" VALUE="application/epub+zip" />
-	        	<ITEM NAME="HTML" VALUE="text/html" />
-	        	<ITEM NAME="WORD" VALUE="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-	        	<ITEM NAME="PDF" VALUE="application/pdf"/>
-	        	<ITEM NAME="TEXT" VALUE="text/plain" />
-	        	<ITEM NAME="OO_DOCUMENT" VALUE="application/vnd.oasis.opendocument.text" />
-	        	<ITEM NAME="RTF" VALUE="application/rtf" />
+	        	<ITEM NAME="EPUB" VALUE="application/epub+zip.zip" />
+	        	<ITEM NAME="HTML" VALUE="text/html.html" />
+	        	<ITEM NAME="WORD" VALUE="application/vnd.openxmlformats-officedocument.wordprocessingml.document.docx" />
+	        	<ITEM NAME="PDF" VALUE="application/pdf.pdf"/>
+	        	<ITEM NAME="TEXT" VALUE="text/plain.txt" />
+	        	<ITEM NAME="OO_DOCUMENT" VALUE="application/vnd.oasis.opendocument.text.odt" />
+	        	<ITEM NAME="RTF" VALUE="application/rtf.rtf" />
 	        </ITEMS>
 	    </PARAMETER>
 	    
 	    <PARAMETER NAME="EXPORT_DRAWING" FIELD="CLOSED_LIST" NUM_ROW="120">
 	        <ITEMS DEFAULT="PNG">
-	            <ITEM NAME="JPG" VALUE="image/jpeg" />
-	            <ITEM NAME="PDF" VALUE="application/pdf"/>
-	            <ITEM NAME="PNG" VALUE="image/png" />
-	            <ITEM NAME="SVG" VALUE="image/svg+xml" />
+	            <ITEM NAME="JPG" VALUE="image/jpeg.jpg" />
+	            <ITEM NAME="PDF" VALUE="application/pdf.pdf"/>
+	            <ITEM NAME="PNG" VALUE="image/png.png" />
+	            <ITEM NAME="SVG" VALUE="image/svg+xml.svg" />
 	        </ITEMS>
 	    </PARAMETER>
 	    
 	    <PARAMETER NAME="EXPORT_PRESENTATION" FIELD="CLOSED_LIST" NUM_ROW="130">
 	        <ITEMS DEFAULT="POWERPOINT">
-	            <ITEM NAME="POWERPOINT" VALUE="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
-	            <ITEM NAME="PDF" VALUE="application/pdf"/>
-	            <ITEM NAME="OO_PRESENSTAtION" VALUE="application/vnd.oasis.opendocument.presentation" />
+	            <ITEM NAME="POWERPOINT" VALUE="application/vnd.openxmlformats-officedocument.presentationml.presentation.pptx" />
+	            <ITEM NAME="PDF" VALUE="application/pdf.pdf"/>
+	            <ITEM NAME="OO_PRESENSTAtION" VALUE="application/vnd.oasis.opendocument.presentation.odp" />
 	        </ITEMS>
 	    </PARAMETER>
 	    
 	    <PARAMETER NAME="EXPORT_SPREADSHEET" FIELD="CLOSED_LIST" NUM_ROW="140">
 	        <ITEMS DEFAULT="EXCEL">
-	            <ITEM NAME="CSV" VALUE="text/csv" />
-	            <ITEM NAME="CSV_TAB" VALUE="text/tab-separated-values" />
-	            <ITEM NAME="EXCEL" VALUE="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-	            <ITEM NAME="PDF" VALUE="application/pdf"/>
-	            <ITEM NAME="OO_SPREADSHEET" VALUE="application/vnd.oasis.opendocument.spreadsheet" />
-	            <ITEM NAME="OO_XSPREADSHEET" VALUE="application/x-vnd.oasis.opendocument.spreadsheet" />
-	            <ITEM NAME="ZIP" VALUE="application/zip" />
+	            <ITEM NAME="CSV" VALUE="text/csv.csv" />
+	            <ITEM NAME="CSV_TAB" VALUE="text/tab-separated-values.csv" />
+	            <ITEM NAME="EXCEL" VALUE="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.xlsx" />
+	            <ITEM NAME="PDF" VALUE="application/pdf.pdf"/>
+	            <ITEM NAME="OO_SPREADSHEET" VALUE="application/vnd.oasis.opendocument.spreadsheet.ods" />
+	            <ITEM NAME="OO_XSPREADSHEET" VALUE="application/x-vnd.oasis.opendocument.spreadshee.ods" />
+	            <ITEM NAME="ZIP" VALUE="application/zip.zip" />
 	        </ITEMS>
 	    </PARAMETER>
 	</ADVANCED_PARAMETERS>
