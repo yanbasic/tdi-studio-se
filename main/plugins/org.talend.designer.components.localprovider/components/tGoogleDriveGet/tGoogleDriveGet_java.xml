@@ -99,6 +99,7 @@
     
    </PARAMETERS>
    
+    <!-- Export Mime/Type must be suffixed with proper file extension.  -->
 	<ADVANCED_PARAMETERS>
 	    <PARAMETER NAME="EXPORT_DOCUMENT" FIELD="CLOSED_LIST" NUM_ROW="110">
 	        <ITEMS DEFAULT="WORD">
