@@ -23,12 +23,12 @@ imports="
 		String connection = helper.getStringParam("__CONNECTION__");
 	    String connectionKey = "\"conn_" + connection+"\"";
 
-		String fileName = helper.getStringParam("__FILE_NAME__");
+	    String queryType = helper.getStringParam("__QUERY_TYPE__");
+		String queryCriteria = helper.getStringParam("__QUERY_CRITERIA__");
 
 		boolean storeToLocal = helper.getBoolParam("__STORE_TO_LOCAL__");
 		String outputFile = helper.getStringParam("__OUTPUT__");
 		
-		String criteria = helper.getStingParam("__FILE_CRITERIA__");
 
 		boolean dieOnError = helper.getBoolParam("__DIE_ON_ERROR__");
 		
@@ -41,6 +41,19 @@ imports="
 	        	break;
 	        } // if(conn) end
 	    } // for(conns) end
+	    
+	    // Build the query and proper error message
+	    String query = "";
+	    String queryErrorMsg = "";
+        if("CUSTOM".equals(queryType)) {
+            query = "mimeType != 'application/vnd.google-apps.folder' and (\"+" + queryCriteria + "+\")";
+            queryErrorMsg = "\"custom query \"+"+queryCriteria;
+        }
+        else if("TITLE".equals(queryType)) {
+            query = "trashed = false and title = '\"+" + queryCriteria + "+\"' and mimeType != 'application/vnd.google-apps.folder'";
+            queryErrorMsg = "\"name \\\"\"+" + queryCriteria + "+\"\\\" \"";
+        }
+	    
 %>
 com.google.api.services.drive.Drive <%=cid%>_client;
 <%
@@ -92,23 +105,60 @@ com.google.api.services.drive.Drive <%=cid%>_client;
 		}else {
 %>
 <%=cid%>_client = (com.google.api.services.drive.Drive)globalMap.get(<%=connectionKey%>);
+
+boolean <%=cid%>_error = false;
+String <%=cid%>_errorMsg = "";
 <%
 		}
+        
+        if("ID".equals(queryType)) {
+%>
+        try {
+            // Test if the file's id exists
+            <%=cid%>_client.files().get(<%=queryCriteria%>).execute();
+        }
+        catch(com.google.api.client.googleapis.json.GoogleJsonResponseException e) {
+            <%=cid%>_error = true;
+            <%=cid%>_errorMsg = e.getDetails().getMessage();
+        }
+<%
+        }
+        else {
 %>
 		com.google.api.services.drive.Drive.Files.List <%=cid%>_listRequest =  <%=cid%>_client.files().list();
-		<%=cid%>_listRequest.setQ("trashed = false and title = '" + <%=fileName%> + "' and mimeType != 'application/vnd.google-apps.folder'");
+		<%=cid%>_listRequest.setQ("<%=query%>");
 		com.google.api.services.drive.model.FileList <%=cid%>_files = <%=cid%>_listRequest.execute();
+
 		if (<%=cid%>_files.getItems().size() > 1)
 		{
-			throw new Exception("More than one file found with name \"" + <%=fileName%> + "\" ");
+		    <%=cid%>_error = true;
+		    <%=cid%>_errorMsg = "More than one file found with " + <%=queryErrorMsg%>;
 		}
 		else if (<%=cid%>_files.getItems().isEmpty())
 		{
-			throw new Exception("No file found with name \"" + <%=fileName%> + "\" ");
+		    <%=cid%>_error = true;
+		    <%=cid%>_errorMsg = "No file found with \"+" + <%=queryErrorMsg%>;
+		}
+
+<%
+        }
+%>
+		if(<%=cid%>_error) {
+		    throw new Exception(<%=cid%>_errorMsg);
 		}
 		else
 		{
+<%
+            if("ID".equals(queryType)) {
+%>
+            String <%=cid%>_fileId = <%=queryCriteria%>;
+<%
+            } else {
+%>
 			String <%=cid%>_fileId = <%=cid%>_files.getItems().get(0).getId();
+<%
+            }
+%>
 			com.google.api.services.drive.model.File <%=cid%>_file = <%=cid%>_client.files().get(<%=cid%>_fileId).execute();
 			com.google.api.client.http.HttpResponse resp = <%=cid%>_client.getRequestFactory().buildGetRequest(new com.google.api.client.http.GenericUrl(<%=cid%>_file.getDownloadUrl())).execute();
 <%
