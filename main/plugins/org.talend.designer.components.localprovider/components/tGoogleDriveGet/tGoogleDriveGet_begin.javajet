@@ -21,8 +21,6 @@ imports="
 		String cid = node.getUniqueName();
 		NodeParamsHelper helper = new NodeParamsHelper(node);
 
-		String exportExtCacheName = "tGoogleDriveGet_exportExt";
-		
 		boolean useExistingConn = helper.getBoolParam("__USE_EXISTING_CONNECTION__");
 		String connection = helper.getStringParam("__CONNECTION__");
 	    String connectionKey = "\"conn_" + connection+"\"";
