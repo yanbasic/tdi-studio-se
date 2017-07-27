@@ -2932,6 +2932,14 @@
               name="reset the 'COLUMN_DELIMITER' parameter"
               version="6.5.0">
         </projecttask>
+        <projecttask
+              beforeLogon="false"
+              breaks="6.5.0"
+              class="org.talend.repository.model.migration.AddGoogleDriveQueryType"
+              id="org.talend.repository.model.migration.AddGoogleDriveQueryType"
+              name="Add 'QUERY_TYPE' and rename 'FILE_NAME' to 'QUERY_CRITERIA'"
+              version="6.5.0">
+        </projecttask>
    </extension>
 
    <extension
