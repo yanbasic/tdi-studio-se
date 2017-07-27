@@ -27,6 +27,8 @@ imports="
 
 		boolean storeToLocal = helper.getBoolParam("__STORE_TO_LOCAL__");
 		String outputFile = helper.getStringParam("__OUTPUT__");
+		
+		String criteria = helper.getStingParam("__FILE_CRITERIA__");
 
 		boolean dieOnError = helper.getBoolParam("__DIE_ON_ERROR__");
 		
