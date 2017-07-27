@@ -1,3 +1,15 @@
+// ============================================================================
+//
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+//
+// This source code is available under agreement available at
+// %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
+//
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
+//
+// ============================================================================
 package org.talend.repository.model.migration;
 
 import java.util.Arrays;
@@ -32,7 +44,7 @@ public class AddGoogleDocExports extends AbstractJobMigrationTask {
     /**
      * The component to update.
      */
-    private final static String COMPO_NAME = "tGoogleDriveGet";
+    private final static String COMPONENT_NAME = "tGoogleDriveGet";
     
     private final static String OUTPUT_EXT_PROPERTY_NAME = "OUTPUT_EXT";
     private final static String OUTPUT_EXT_PROPERTY_TYPE = "CHECK";
@@ -59,7 +71,7 @@ public class AddGoogleDocExports extends AbstractJobMigrationTask {
             return ExecutionResult.NOTHING_TO_DO;
         }
          
-        IComponentFilter filter = new NameComponentFilter(COMPO_NAME);
+        IComponentFilter filter = new NameComponentFilter(COMPONENT_NAME);
         
         try {
              ModifyComponentsAction.searchAndModify(item,

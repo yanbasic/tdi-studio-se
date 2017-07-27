@@ -126,7 +126,7 @@
 	        <ITEMS DEFAULT="POWERPOINT">
 	            <ITEM NAME="POWERPOINT" VALUE="application/vnd.openxmlformats-officedocument.presentationml.presentation.pptx" />
 	            <ITEM NAME="PDF" VALUE="application/pdf.pdf"/>
-	            <ITEM NAME="OO_PRESENSTAtION" VALUE="application/vnd.oasis.opendocument.presentation.odp" />
+	            <ITEM NAME="OO_PRESENSTATION" VALUE="application/vnd.oasis.opendocument.presentation.odp" />
 	        </ITEMS>
 	    </PARAMETER>
 	    
