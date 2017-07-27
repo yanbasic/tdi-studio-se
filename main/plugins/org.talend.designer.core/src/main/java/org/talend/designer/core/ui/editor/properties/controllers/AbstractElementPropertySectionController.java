@@ -1886,8 +1886,9 @@ public abstract class AbstractElementPropertySectionController implements Proper
         }
         String dbVersionName = EDatabaseVersion4Drivers.getDbVersionName(type, driverName);
         if (EDatabaseTypeName.HIVE.getProduct().equalsIgnoreCase(type)) {
-            if (EDatabaseVersion4Drivers.HIVE_EMBEDDED.getVersionValue().equals(
-                    elem.getElementParameter("CONNECTION_MODE").getValue())) {
+            IElementParameter connectionMode = elem.getElementParameter("CONNECTION_MODE");
+            if (connectionMode != null
+                    && EDatabaseVersion4Drivers.HIVE_EMBEDDED.getVersionValue().equals(connectionMode.getValue())) {
                 connParameters.setDbVersion(EDatabaseVersion4Drivers.HIVE_EMBEDDED.getVersionValue());
             } else {
                 connParameters.setDbVersion(EDatabaseVersion4Drivers.HIVE.getVersionValue());
@@ -2113,8 +2114,11 @@ public abstract class AbstractElementPropertySectionController implements Proper
             for (IElementParameter param : elem.getElementParameters()) {
                 if (param.getFieldType() == EParameterFieldType.PROPERTY_TYPE
                         && param.getRepositoryValue().startsWith("DATABASE")) {
-                    repositoryParam = param;
-                    break;
+                    if (memoParam != null && param.getCategory().equals(memoParam.getCategory())) {
+                        repositoryParam = param;
+                        break;
+                    }
+
                 }
             }
             // in case no database property found, take the first property (to keep compatibility with old code)
