@@ -48,12 +48,12 @@ public class AddGoogleDriveQueryType extends AbstractJobMigrationTask {
 
     private final static String QUERY_TYPE_PROPERTY_TYPE = "CLOSED_LIST";
 
-    private final static String QUERY_TYPE_PROPERTY_DEFAULT = "NAME";
+    private final static String QUERY_TYPE_PROPERTY_DEFAULT = "TITLE";
 
     /**
      * Rename the property FILE_NAME to QUERY_CRITERIA
      */
-    private final static String QUERY_CRITERIA_PROPERTY_NAME = "";
+    private final static String QUERY_CRITERIA_PROPERTY_NAME = "QUERY_CRITERIA";
 
     private final static String QUERY_CRITERIA_PROPERTY_TYPE = "TEXT";
 
@@ -116,8 +116,8 @@ public class AddGoogleDriveQueryType extends AbstractJobMigrationTask {
             if (queryCriteria == null) {
                 ElementParameterType fileName = ComponentUtilities.getNodeProperty(node, FILE_NAME_PROPERTY_NAME);
 
-                ComponentUtilities.addNodeProperty(node, QUERY_TYPE_PROPERTY_NAME, QUERY_CRITERIA_PROPERTY_TYPE);
-                ComponentUtilities.getNodeProperty(node, QUERY_TYPE_PROPERTY_NAME).setValue(fileName.getValue());
+                ComponentUtilities.addNodeProperty(node, QUERY_CRITERIA_PROPERTY_NAME, QUERY_CRITERIA_PROPERTY_TYPE);
+                ComponentUtilities.getNodeProperty(node, QUERY_CRITERIA_PROPERTY_NAME).setValue(fileName.getValue());
 
                 ComponentUtilities.removeNodeProperty(node, FILE_NAME_PROPERTY_NAME);
             }
