@@ -84,7 +84,7 @@
 			<outputDirectory>${talend.job.name}/src/main/assemblies/
 			</outputDirectory>
 			<includes>
-				<include>assembly_${talend.job.name}_${talend.job.version}.xml</include>
+				<include>assembly.xml</include>
 			</includes>
 		</fileSet>
 		<fileSet><!-- pom_*.xml -->
@@ -92,16 +92,6 @@
 			<outputDirectory>${talend.job.name}</outputDirectory>
 			<includes>
 				<include>pom.xml</include>
-				<include>pom_routines.xml</include>
-				<include>pom_beans.xml</include>
-				<include>pom_${talend.job.name}_${talend.job.version}.xml</include>
-			</includes>
-		</fileSet>
-		<fileSet><!-- pom_pigudfs.xml -->
-			<directory>${pigudfs.poms.dir}</directory>
-			<outputDirectory>${talend.job.name}</outputDirectory>
-			<includes>
-				<include>pom_pigudfs.xml</include>
 			</includes>
 		</fileSet>
 		<fileSet> <!-- add items -->
@@ -115,16 +105,7 @@
 			<directory>${sourcecodes.dir}</directory>
 			<outputDirectory>${talend.job.name}/src/main/java/</outputDirectory>
 			<includes>
-				<include>routines/**</include>
-				<include>beans/**</include>
 				<include>${talend.job.path}/**</include>
-			</includes>
-		</fileSet>
-		<fileSet> <!-- add PigUDFs source codes -->
-			<directory>${pigudfs.sourcecodes.dir}</directory>
-			<outputDirectory>${talend.job.name}/src/main/java/</outputDirectory>
-			<includes>
-				<include>pigudf/**</include>
 			</includes>
 		</fileSet>
 		<fileSet><!-- add context resources -->
@@ -191,6 +172,8 @@
 			<outputDirectory>lib</outputDirectory>
 			<includes>
 				<include>${talend.libraries.includes.set}</include>
+				<include>${routines.binaries.includes.set}</include>
+				<include>${pigudfs.binaries.includes.set}</include>
 			</includes>
 			<!-- without version for talend libraries -->
 			<outputFileNameMapping>${artifact.artifactId}.${artifact.extension}
@@ -202,6 +185,8 @@
 			<excludes>
 				<exclude>${talend.libraries.excludes.set}</exclude>
 				<exclude>${talend.jobs.excludes.set}</exclude>
+				<exclude>${talend.code.excludes.set}</exclude>
+				<exclude>${talend.pigudf.excludes.set}</exclude>
 			</excludes>
 			<useProjectArtifact>false</useProjectArtifact>
 		</dependencySet>
@@ -215,36 +200,4 @@
 			<useProjectArtifact>true</useProjectArtifact>
 		</dependencySet>
 	</dependencySets>
-	<moduleSets>
-		<moduleSet>
-			<!-- for routines or talend libs -->
-			<includeSubModules>false</includeSubModules>
-			<useAllReactorProjects>true</useAllReactorProjects>
-			<includes>
-				<include>${routines.binaries.includes.set}</include>
-			</includes>
-			<binaries>
-				<outputDirectory>lib</outputDirectory>
-				<includeDependencies>false</includeDependencies>
-				<unpack>false</unpack>
-				<outputFileNameMapping>${module.artifactId}.${module.extension}
-				</outputFileNameMapping>
-			</binaries>
-		</moduleSet>
-		<moduleSet>
-			<!-- for pigudfs or talend libs -->
-			<includeSubModules>false</includeSubModules>
-			<useAllReactorProjects>true</useAllReactorProjects>
-			<includes>
-				<include>${pigudfs.binaries.includes.set}</include>
-			</includes>
-			<binaries>
-				<outputDirectory>lib</outputDirectory>
-				<includeDependencies>false</includeDependencies>
-				<unpack>false</unpack>
-				<outputFileNameMapping>${module.artifactId}.${module.extension}
-				</outputFileNameMapping>
-			</binaries>
-		</moduleSet>
-	</moduleSets>
 </assembly>

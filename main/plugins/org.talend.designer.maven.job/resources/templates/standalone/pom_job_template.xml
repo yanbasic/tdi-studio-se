@@ -7,7 +7,7 @@
 		<groupId>@ProjectGroupId@</groupId>
 		<artifactId>@ProjectArtifactId@</artifactId>
 		<version>@ProjectVersion@</version>
-		<relativePath>./pom.xml</relativePath>
+		<relativePath>@ProjectRelativePath@</relativePath>
 	</parent>
 	<groupId>@JobGroupId@</groupId>
 	<artifactId>@JobArtifactId@</artifactId>
@@ -66,34 +66,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<includes>
-						<!-- only compile the job source -->
-						<include>${talend.job.path}/**.java</include>
-					</includes>
-					<testExcludes>
-						<!-- exclude every test -->
-						<exclude>**</exclude>
-					</testExcludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
@@ -115,27 +87,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jar-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>default-jar</id>
-                  <phase>package</phase>
-                  <goals>
-                    <goal>jar</goal>
-                  </goals>
-                  <configuration>
-                    <includes>
-                      <!-- only package the job classes -->
-                      <include>${talend.job.path}/*.class</include>
-                      <include>${talend.job.path}/**/*.wsdl</include>
-                    </includes>
-                  </configuration>
-                </execution>
-             </executions>
-           </plugin>			
+			</plugin>			
 		 </plugins>
 	</build>
 	<profiles>
@@ -157,7 +109,7 @@
                      </goals>
                      <configuration>
                        <descriptors>
-                         <descriptor>${basedir}/src/main/assemblies/assembly_${talend.job.name}_${talend.job.version}.xml</descriptor>
+                         <descriptor>${basedir}/src/main/assemblies/assembly.xml</descriptor>
                        </descriptors>
                        <tarLongFileMode>gnu</tarLongFileMode>
                        <appendAssemblyId>false</appendAssemblyId>
@@ -217,10 +169,12 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<talend.libraries.includes.set>org.talend.libraries:*</talend.libraries.includes.set>
 				<talend.libraries.excludes.set>${talend.libraries.includes.set}</talend.libraries.excludes.set>
-				<talend.jobs.excludes.set>${project.groupId}:*</talend.jobs.excludes.set>
-				<current.job.binaries.include>${project.groupId}:${project.artifactId}:${project.version}</current.job.binaries.include>
+        		<talend.jobs.excludes.set>${project.groupId}:*</talend.jobs.excludes.set>
+				<talend.code.excludes.set>org.talend.code.testbd:*</talend.code.excludes.set>
+				<talend.pigudf.excludes.set>org.talend.pigudf.testbd:*</talend.pigudf.excludes.set>
+		        <talend.libraries.includes.set>org.talend.libraries:*</talend.libraries.includes.set>
+		        <current.job.binaries.include>${project.groupId}:${project.artifactId}:${project.version}</current.job.binaries.include>
 			</properties>
 		</profile>
 		<profile>
@@ -294,13 +248,6 @@
 			<id>include-test-reports</id>
 			<properties>
 				<test.reports.dir>${project.build.directory}/surefire-reports</test.reports.dir>
-			</properties>
-		</profile>
-		<profile>
-			<id>include-pigudfs-java-sources</id>
-			<properties>
-				<pigudfs.sourcecodes.dir>${project.build.sourceDirectory}</pigudfs.sourcecodes.dir>
-				<pigudfs.poms.dir>${basedir}</pigudfs.poms.dir>
 			</properties>
 		</profile>
 		<profile>
