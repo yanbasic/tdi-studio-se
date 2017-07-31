@@ -37,8 +37,32 @@ imports="
 		String exportDrawType = helper.getStringParam("__EXPORT_DRAWING__");
 		String exportPresentationType = helper.getStringParam("__EXPORT_PRESENTATION__");
 		String exportSpreadSheetType = helper.getStringParam("__EXPORT_SPREADSHEET__");
-
 		
+		Map<String, String> mapExtension = new HashMap<String, String>();
+		mapExtension.put("application/epub+zip", ".zip");
+		mapExtension.put("application/pdf", ".pdf");
+		mapExtension.put("application/rtf", ".rtf");
+		mapExtension.put("application/vnd.oasis.opendocument.presentation", ".odp");
+		mapExtension.put("application/vnd.oasis.opendocument.spreadsheet", ".ods");
+		mapExtension.put("application/vnd.oasis.opendocument.text", ".odt");
+		mapExtension.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", ".pptx");
+		mapExtension.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx");
+		mapExtension.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx");
+		mapExtension.put("application/x-vnd.oasis.opendocument.spreadshee", ".ods");
+		mapExtension.put("application/zip", ".zip");
+		mapExtension.put("image/jpeg", ".jpg");
+		mapExtension.put("image/png", ".png");
+		mapExtension.put("image/svg+xml", ".svg");
+		mapExtension.put("text/csv", ".csv");
+		mapExtension.put("text/html", ".html");
+		mapExtension.put("text/plain", ".txt");
+		mapExtension.put("text/tab-separated-values", ".csv");
+		
+		String exportDocumentExt = mapExtension.get(exportDocumentType);
+		String exportDrawExt = mapExtension.get(exportDrawType);
+		String exportPresentationExt = mapExtension.get(exportPresentationType);
+		String exportSpreadSheetExt = mapExtension.get(exportSpreadSheetType);
+
         String dataOutputConnection = null;
 	    
 		List< ? extends IConnection> outputConnections = node.getOutgoingSortedConnections();
@@ -51,11 +75,11 @@ imports="
 %>
 	    
 String <%=cid%>_outputFileExt = "";
-java.util.Map<String, String> <%=cid%>_exportMapping = new java.util.HashMap();
-<%=cid%>_exportMapping.put("application/vnd.google-apps.document", "<%=exportDocumentType%>");
-<%=cid%>_exportMapping.put("application/vnd.google-apps.drawing", "<%=exportDrawType%>");
-<%=cid%>_exportMapping.put("application/vnd.google-apps.presentation", "<%=exportPresentationType%>");
-<%=cid%>_exportMapping.put("application/vnd.google-apps.spreadsheet", "<%=exportSpreadSheetType%>");
+java.util.Map<String, String[]> <%=cid%>_exportMapping = new java.util.HashMap<String, String[]>();
+<%=cid%>_exportMapping.put("application/vnd.google-apps.document", new String[] {"<%=exportDocumentType%>", "<%=exportDocumentExt%>"});
+<%=cid%>_exportMapping.put("application/vnd.google-apps.drawing", new String[] {"<%=exportDrawType%>", "<%=exportDrawExt%>"});
+<%=cid%>_exportMapping.put("application/vnd.google-apps.presentation", new String[] {"<%=exportPresentationType%>", "<%=exportPresentationExt%>"});
+<%=cid%>_exportMapping.put("application/vnd.google-apps.spreadsheet", new String[] {"<%=exportSpreadSheetType%>", "<%=exportSpreadSheetExt%>"});
 
 com.google.api.services.drive.Drive <%=cid%>_client;
 <%
@@ -133,11 +157,9 @@ com.google.api.services.drive.Drive <%=cid%>_client;
 				java.util.Map<String, String> <%=cid%>_exportLinks = <%=cid%>_file.getExportLinks();
 				
                 if(<%=cid%>_exportLinks != null) {
-                    String <%=cid%>_exportTo = <%=cid%>_exportMapping.get(<%=cid%>_file.getMimeType());
-                    
-                    // remove extension
-                    String ext =  <%=cid%>_exportTo.substring(<%=cid%>_exportTo.lastIndexOf('.'));
-                    <%=cid%>_exportTo = <%=cid%>_exportTo.substring(0, <%=cid%>_exportTo.length() - ext.length());
+                    String[] <%=cid%>_exportInfo = <%=cid%>_exportMapping.get(<%=cid%>_file.getMimeType()); 
+                    String <%=cid%>_exportTo = <%=cid%>_exportInfo[0];
+                    String ext = <%=cid%>_exportInfo[1];
                     
                     <%=cid%>_downloadUrl = <%=cid%>_exportLinks.get(<%=cid%>_exportTo);
 <%
