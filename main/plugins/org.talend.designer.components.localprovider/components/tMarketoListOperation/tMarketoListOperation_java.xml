@@ -164,7 +164,7 @@
 		<IMPORT NAME="SOAP-JAF" MODULE="activation.jar" MVN="mvn:org.talend.libraries/activation/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.apache.axis2/lib/activation.jar" REQUIRED_IF="(USE_SOAP_API == 'true')" />
 		<IMPORT NAME="XML-DOM4J" MODULE="dom4j-1.6.1.jar" MVN="mvn:org.talend.libraries/dom4j-1.6.1/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.dom4j-jaxen/lib/dom4j-1.6.1.jar" REQUIRED_IF="(USE_SOAP_API == 'true')" BundleID="" />
 		<IMPORT NAME="XML-XPATH-JAXEN" MODULE="jaxen-1.1.1.jar" MVN="mvn:org.talend.libraries/jaxen-1.1.1/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.dom4j-jaxen/lib/jaxen-1.1.1.jar" REQUIRED_IF="(USE_SOAP_API == 'true')" BundleID="" />
-		<IMPORT NAME="TALEND-MARKETO" MODULE="talend-marketo-2.7.jar" MVN="mvn:org.talend.libraries/talend-marketo-2.7/6.0.0"  REQUIRED_IF="(USE_SOAP_API == 'true')" />
+		<IMPORT NAME="TALEND-MARKETO" MODULE="talend-marketo-3.1.jar" MVN="mvn:org.talend.libraries/talend-marketo-3.1/6.0.0"  REQUIRED_IF="(USE_SOAP_API == 'true')" />
 
         <!-- Rest API -->
         <IMPORT NAME="CXF-CORE" MODULE="cxf-core-3.1.4.jar" MVN="mvn:org.talend.libraries/cxf-core-3.1.4/6.1.0" UrlPath="platform:/plugin/org.talend.libraries.apache.cxf/lib/cxf-core-3.1.4.jar" REQUIRED_IF="(USE_REST_API == 'true')" BundleID="" />
@@ -177,7 +177,7 @@
         <IMPORT NAME="XMLSCHEMA-CORE" MODULE="xmlschema-core-2.2.1.jar" MVN="mvn:org.talend.libraries/xmlschema-core-2.2.1/6.0.0" UrlPath="platform:/plugin/org.talend.libraries.apache.cxf/lib/xmlschema-core-2.2.1.jar" REQUIRED_IF="(USE_REST_API == 'true')"/>
         <IMPORT NAME="WOODSTOX-CORE-ASL" MODULE="woodstox-core-asl-4.4.1.jar" MVN="mvn:org.talend.libraries/woodstox-core-asl-4.4.1/6.0.0" UrlPath="platform:/plugin/org.talend.libraries.apache.cxf/lib/woodstox-core-asl-4.4.1.jar" REQUIRED_IF="(USE_REST_API == 'true')"/>
         <IMPORT NAME="GSON" MODULE="gson-2.3.1.jar" MVN="mvn:org.talend.libraries/gson-2.3.1/6.1.0" UrlPath="platform:/plugin/org.talend.libraries.apache.google/lib/gson-2.3.1.jar" REQUIRED_IF="(USE_REST_API == 'true')"/>
-		<IMPORT NAME="TALEND-MARKETO-REST" MODULE="talend-marketo-rest-2.1-20161125.jar" MVN="mvn:org.talend.libraries/talend-marketo-rest-2.1-20161125/6.2.1"  REQUIRED_IF="(USE_REST_API == 'true')" />
+		<IMPORT NAME="TALEND-MARKETO-REST" MODULE="talend-marketo-rest-2.2-20170801.jar" MVN="mvn:org.talend.libraries/talend-marketo-rest-2.2-20170801/6.2.1"  REQUIRED_IF="(USE_REST_API == 'true')" />
 
 	</IMPORTS>
   </CODEGENERATION>

@@ -287,8 +287,8 @@
 				BundleID="" />
 			<IMPORT
 				NAME="TALEND-MARKETO"
-				MODULE="talend-marketo-2.7.jar"
-				MVN="mvn:org.talend.libraries/talend-marketo-2.7/6.0.0"
+				MODULE="talend-marketo-3.1.jar"
+				MVN="mvn:org.talend.libraries/talend-marketo-3.1/6.0.0"
 				REQUIRED_IF="(USE_SOAP_API == 'true')" />
 
 			<!-- Rest API -->
@@ -356,8 +356,8 @@
 				REQUIRED_IF="(USE_REST_API == 'true')" />
 		    <IMPORT 
 		        NAME="TALEND-MARKETO-REST" 
-		        MODULE="talend-marketo-rest-2.1-20161125.jar" 
-		        MVN="mvn:org.talend.libraries/talend-marketo-rest-2.1-20161125/6.2.1"  
+		        MODULE="talend-marketo-rest-2.2-20170801.jar"
+		        MVN="mvn:org.talend.libraries/talend-marketo-rest-2.2-20170801/6.2.1"
 		        REQUIRED_IF="(USE_REST_API == 'true')" />
 
 		</IMPORTS>
