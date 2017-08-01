@@ -67,7 +67,8 @@
 			<COLUMN KEY="false" LENGTH="255" NAME="ForeignSysType" TYPE="id_String" />
 		</TABLE>
 		<TABLE IF="(USE_SOAP_API == 'true') AND (OPERATION=='getLeadChanges')">
-			<COLUMN KEY="true" LENGTH="255" NAME="Id" TYPE="id_Integer" />
+			<COLUMN KEY="false" LENGTH="255" NAME="Id" TYPE="id_Integer" />
+            <COLUMN KEY="true"  LENGTH="255" NAME="marketoGUID" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="ActivityDateTime" TYPE="id_Date" PATTERN="&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ss&apos;.000Z&apos;&quot;" />
 			<COLUMN KEY="false" LENGTH="255" NAME="ActivityType" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="MktgAssetName" TYPE="id_String" />
@@ -75,7 +76,8 @@
 			<COLUMN KEY="false" LENGTH="255" NAME="Campaign" TYPE="id_String" />
 		</TABLE>
 		<TABLE IF="(USE_SOAP_API == 'true') AND (OPERATION=='getLeadActivity')">
-			<COLUMN KEY="true" LENGTH="255" NAME="Id" TYPE="id_Integer" />
+			<COLUMN KEY="false" LENGTH="255" NAME="Id" TYPE="id_Integer" />
+            <COLUMN KEY="true"  LENGTH="255" NAME="marketoGUID" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="ActivityDateTime" TYPE="id_Date" PATTERN="&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ss&apos;.000Z&apos;&quot;" />
 			<COLUMN KEY="false" LENGTH="255" NAME="ActivityType" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="MktgAssetName" TYPE="id_String" />
@@ -95,7 +97,8 @@
 			<COLUMN KEY="false" LENGTH="255" NAME="updatedAt" TYPE="id_Date" PATTERN="&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ssZ&quot;"/>
 		</TABLE>
 		<TABLE IF="(USE_SOAP_API == 'false') AND (OPERATION=='getLeadChanges')">
-			<COLUMN KEY="true" LENGTH="255" NAME="id" TYPE="id_Long" />
+			<COLUMN KEY="false" LENGTH="255" NAME="id" TYPE="id_Long" />
+            <COLUMN KEY="true"  LENGTH="255" NAME="marketoGUID" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="leadId" TYPE="id_Integer" />
 			<COLUMN KEY="false" LENGTH="255" NAME="activityDate" TYPE="id_Date" PATTERN="&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ssZ&quot;" />
 			<COLUMN KEY="false" LENGTH="255" NAME="activityTypeId" TYPE="id_Integer" />
@@ -103,7 +106,8 @@
 			<COLUMN KEY="false" LENGTH="255" NAME="fields" TYPE="id_String" />
 		</TABLE>
 		<TABLE IF="(USE_SOAP_API == 'false') AND (OPERATION=='getLeadActivity')">
-			<COLUMN KEY="true" LENGTH="255" NAME="id" TYPE="id_Long" />
+			<COLUMN KEY="false" LENGTH="255" NAME="id" TYPE="id_Long" />
+            <COLUMN KEY="true"  LENGTH="255" NAME="marketoGUID" TYPE="id_String" />
 			<COLUMN KEY="false" LENGTH="255" NAME="leadId" TYPE="id_Integer" />
 			<COLUMN KEY="false" LENGTH="255" NAME="activityDate" TYPE="id_Date" PATTERN="&quot;yyyy-MM-dd&apos;T&apos;HH:mm:ssZ&quot;" />
 			<COLUMN KEY="false" LENGTH="255" NAME="activityTypeId" TYPE="id_Integer" />
