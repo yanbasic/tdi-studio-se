@@ -29,7 +29,9 @@ public class ActivityRecord implements java.io.Serializable {
 	private java.lang.String orgName;
 
 	private java.lang.String foreignSysOrgId;
-
+	
+	private java.lang.String marketoGUID;
+	
 	public ActivityRecord() {
 	}
 
@@ -40,6 +42,26 @@ public class ActivityRecord implements java.io.Serializable {
 			java.lang.String mktPersonId, java.lang.String foreignSysId,
 			java.lang.String orgName, java.lang.String foreignSysOrgId) {
 		this.id = id;
+		this.activityDateTime = activityDateTime;
+		this.activityType = activityType;
+		this.mktgAssetName = mktgAssetName;
+		this.activityAttributes = activityAttributes;
+		this.campaign = campaign;
+		this.personName = personName;
+		this.mktPersonId = mktPersonId;
+		this.foreignSysId = foreignSysId;
+		this.orgName = orgName;
+		this.foreignSysOrgId = foreignSysOrgId;
+	}
+
+	public ActivityRecord(long id, java.lang.String marketoGUID, java.util.Calendar activityDateTime,
+						  java.lang.String activityType, java.lang.String mktgAssetName,
+						  com.marketo.www.mktows.Attribute[] activityAttributes,
+						  java.lang.String campaign, java.lang.String personName,
+						  java.lang.String mktPersonId, java.lang.String foreignSysId,
+						  java.lang.String orgName, java.lang.String foreignSysOrgId) {
+		this.id = id;
+		this.marketoGUID = marketoGUID;
 		this.activityDateTime = activityDateTime;
 		this.activityType = activityType;
 		this.mktgAssetName = mktgAssetName;
@@ -70,6 +92,24 @@ public class ActivityRecord implements java.io.Serializable {
 		this.id = id;
 	}
 
+	/**
+	 * Gets the marketoGUID for this ActivityRecord.
+	 * 
+	 * @return marketoGUID
+	 */
+	public String getMarketoGUID(){
+	    return marketoGUID;
+	}
+	
+	/**
+	 * Sets the marketoGUID value for this ActivityRecord.
+	 *  
+	 * @param guid
+	 */
+	public void setMarketoGUID(String guid){
+	    this.marketoGUID = guid;
+	}
+	
 	/**
 	 * Gets the activityDateTime value for this ActivityRecord.
 	 * 
@@ -251,7 +291,7 @@ public class ActivityRecord implements java.io.Serializable {
 		this.foreignSysOrgId = foreignSysOrgId;
 	}
 
-	private java.lang.Object __equalsCalc = null;
+    private java.lang.Object __equalsCalc = null;
 
 	public synchronized boolean equals(java.lang.Object obj) {
 		if (!(obj instanceof ActivityRecord))
@@ -268,6 +308,7 @@ public class ActivityRecord implements java.io.Serializable {
 		boolean _equals;
 		_equals = true
 				&& this.id == other.getId()
+                && this.marketoGUID == other.getMarketoGUID()
 				&& ((this.activityDateTime == null && other
 						.getActivityDateTime() == null) || (this.activityDateTime != null && this.activityDateTime
 						.equals(other.getActivityDateTime())))
@@ -304,7 +345,8 @@ public class ActivityRecord implements java.io.Serializable {
 		__hashCodeCalc = true;
 		int _hashCode = 1;
 		_hashCode += new Long(getId()).hashCode();
-		if (getActivityDateTime() != null) {
+        _hashCode += getMarketoGUID().hashCode();
+        if (getActivityDateTime() != null) {
 			_hashCode += getActivityDateTime().hashCode();
 		}
 		if (getActivityType() != null) {
@@ -359,6 +401,15 @@ public class ActivityRecord implements java.io.Serializable {
 				"http://www.w3.org/2001/XMLSchema", "long"));
 		elemField.setNillable(false);
 		typeDesc.addFieldDesc(elemField);
+
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("marketoGUID");
+        elemField.setXmlName(new javax.xml.namespace.QName("", "marketoGUID"));
+        elemField.setXmlType(new javax.xml.namespace.QName(
+                "http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+
 		elemField = new org.apache.axis.description.ElementDesc();
 		elemField.setFieldName("activityDateTime");
 		elemField.setXmlName(new javax.xml.namespace.QName("",

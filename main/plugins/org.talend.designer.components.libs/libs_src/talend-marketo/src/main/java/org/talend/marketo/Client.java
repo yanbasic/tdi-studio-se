@@ -333,6 +333,7 @@ public class Client {
     public Map<String, String> readActivity(ActivityRecord record) {
         Map<String, String> activity = new HashMap<String, String>();
         activity.put("Id", String.valueOf(record.getId()));
+        activity.put("marketoGUID", record.getMarketoGUID());
         Calendar calendardate = record.getActivityDateTime();
         String strdate = null;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
@@ -361,6 +362,7 @@ public class Client {
     public Map<String, String> readChange(LeadChangeRecord record) {
         Map<String, String> change = new HashMap<String, String>();
         change.put("Id", String.valueOf(record.getId()));
+        change.put("marketoGUID", record.getMarketoGUID());
         Calendar calendardate = record.getActivityDateTime();
         String strdate = null;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
