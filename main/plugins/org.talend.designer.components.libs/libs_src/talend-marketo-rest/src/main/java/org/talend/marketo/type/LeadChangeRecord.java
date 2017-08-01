@@ -7,6 +7,8 @@ import java.util.Map;
 public class LeadChangeRecord {
     private int id;
 
+    private String marketoGUID;
+
     private int leadId;
 
     private Date activityDate;
@@ -25,6 +27,14 @@ public class LeadChangeRecord {
 
     public int getId() {
         return this.id;
+    }
+
+    public String getMarketoGUID(){
+        return marketoGUID;
+    }
+
+    public void setMarketoGUID(String marketoGUID){
+        this.marketoGUID = marketoGUID;
     }
 
     public void setLeadId(int leadId) {
@@ -77,7 +87,7 @@ public class LeadChangeRecord {
 
     @Override
     public String toString() {
-        return "LeadChangeRecord [id=" + id + ", leadId=" + leadId
+        return "LeadChangeRecord [id=" + id + ", marketoGUID=" + marketoGUID + ", leadId=" + leadId
                 + ", activityDate=" + activityDate + ", activityTypeId="
                 + activityTypeId + ", activityTypeValue=" + activityTypeValue
                 + ", fields=" + fields + ", attributes=" + attributes + "]";

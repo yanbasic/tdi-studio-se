@@ -7,6 +7,7 @@ import java.util.Map;
 public class LeadActivityRecord {
 
     private Long id;
+    private String marketoGUID;
     private Integer leadId;
     private Date activityDate;
     private Integer activityTypeId;
@@ -21,6 +22,14 @@ public class LeadActivityRecord {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getMarketoGUID(){
+        return marketoGUID;
+    }
+
+    public void setMarketoGUID(String marketoGUID){
+        this.marketoGUID = marketoGUID;
     }
 
     public Integer getLeadId() {
@@ -81,7 +90,7 @@ public class LeadActivityRecord {
 
     @Override
     public String toString() {
-        return "LeadActivityRecord [id=" + id + ", leadId=" + leadId
+        return "LeadActivityRecord [id=" + id + ", marketoGUID=" + marketoGUID + ", leadId=" + leadId
                 + ", activityDate=" + activityDate + ", activityTypeId="
                 + activityTypeId + ", activityTypeValue=" + activityTypeValue
                 + ", primaryAttributeValueId=" + primaryAttributeValueId

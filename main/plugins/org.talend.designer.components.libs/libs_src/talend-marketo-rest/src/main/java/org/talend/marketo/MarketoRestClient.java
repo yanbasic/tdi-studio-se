@@ -412,6 +412,7 @@ public class MarketoRestClient {
     public Map<String, String> readActivity(LeadActivityRecord record) {
         Map<String, String> activity = new HashMap<String, String>();
         activity.put("id", String.valueOf(record.getId()));
+        activity.put("marketoGUID", record.getMarketoGUID());
         activity.put("leadId", Integer.toString(record.getLeadId()));
         activity.put("activityDate",
                 MarketoUtils.formatAsW3C(record.getActivityDate()));
@@ -434,6 +435,7 @@ public class MarketoRestClient {
     public Map<String, String> readChange(LeadChangeRecord record) {
         Map<String, String> change = new HashMap<String, String>();
         change.put("id", String.valueOf(record.getId()));
+        change.put("marketoGUID", record.getMarketoGUID());
         change.put("leadId", Long.toString(record.getLeadId()));
         change.put("activityDate",
                 MarketoUtils.formatAsW3C(record.getActivityDate()));
