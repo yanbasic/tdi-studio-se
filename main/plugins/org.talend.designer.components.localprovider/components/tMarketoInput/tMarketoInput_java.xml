@@ -38,7 +38,7 @@
   <PARAMETERS>
 
   	<PARAMETER NAME="ENDPOINT" FIELD="TEXT" NUM_ROW="10" REQUIRED="true">
-		<DEFAULT IF="(USE_SOAP_API == 'true')">"https://123-ABC-456.mktoapi.com/soap/mktows/2_7"</DEFAULT>
+		<DEFAULT IF="(USE_SOAP_API == 'true')">"https://123-ABC-456.mktoapi.com/soap/mktows/3_1"</DEFAULT>
 		<DEFAULT IF="(USE_SOAP_API == 'false')">"https://123-ABC-456.mktorest.com/rest"</DEFAULT>
 	</PARAMETER>
 	<PARAMETER NAME="SECRET_KEY" FIELD="PASSWORD" NUM_ROW="20" REQUIRED="true">
