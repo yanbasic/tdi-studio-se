@@ -50,7 +50,7 @@ for (int i = 0; i < spArgs.size(); i++) {
 
 //stmt_<%=cid%>.execute("SET NOCOUNT ON");
 String spSchema_<%=cid%> = "";
-if(dbschema_<%=cid%> != null && !"".equals(dbschema_<%=cid%>.trim())) {
+if(dbschema_<%=cid%> != null && !dbschema_<%=cid%>.trim().isEmpty()) {
     spSchema_<%=cid%> = "["+dbschema_<%=cid%>+"].";
 }
 java.sql.CallableStatement statement_<%=cid%> = conn_<%=cid%>.prepareCall("{<%=isFunction ? "? = " : ""%>call " + spSchema_<%=cid%> + <%=spName%> + "(<%=parameters.toString()%>)}"
