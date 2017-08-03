@@ -24,6 +24,7 @@ import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.ui.actions.metadata.AbstractCreateAction;
 import org.talend.repository.ProjectManager;
+import org.talend.repository.generic.i18n.Messages;
 import org.talend.repository.generic.ui.GenericConnWizard;
 import org.talend.repository.generic.ui.common.GenericWizardDialog;
 import org.talend.repository.generic.util.GenericWizardServiceFactory;
@@ -76,8 +77,6 @@ public class GenericAction extends AbstractCreateAction {
         if (compWizard == null) {
             return;
         }
-        ComponentWizardDefinition wizardDefinition = compWizard.getDefinition();
-        this.setText(wizardDefinition.getMenuItemName());
         Image nodeImage = GenericWizardServiceFactory.getGenericWizardService().getNodeImage(repObjType.getType());
         if (nodeImage != null) {
             this.setImageDescriptor(ImageDescriptor.createFromImage(nodeImage));
@@ -106,6 +105,7 @@ public class GenericAction extends AbstractCreateAction {
         default:
             return;
         }
+        this.setText(getMenuItemName());
         setEnabled(true);
     }
 
@@ -115,6 +115,19 @@ public class GenericAction extends AbstractCreateAction {
 
     protected int getWizardHeight() {
         return DEFAULT_WIZARD_HEIGHT;
+    }
+
+    private String getMenuItemName() {
+        ComponentWizardDefinition wizardDefinition = compWizard.getDefinition();
+        String menuItemName = wizardDefinition.getMenuItemName();
+        if (wizardDefinition.isTopLevel()) {
+            if (creation) {
+                menuItemName = Messages.getString("CreateGenericConnectionAction.createLabel", menuItemName); //$NON-NLS-1$
+            } else {
+                menuItemName = Messages.getString("CreateGenericConnectionAction.editLabel", menuItemName); //$NON-NLS-1$
+            }
+        }
+        return menuItemName;
     }
 
 }

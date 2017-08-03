@@ -255,10 +255,6 @@ public class GenericWizardService implements IGenericWizardService {
         for (ComponentWizard wizard : wizards) {
             ComponentWizardDefinition wizardDefinition = wizard.getDefinition();
             if (wizardDefinition.isTopLevel()) {
-                continue;
-            }
-            String wizardName = wizardDefinition.getName();
-            if (wizardName.toLowerCase().contains("edit")) { //$NON-NLS-1$
                 defaultAction = new GenericAction(wizard);
                 break;
             }

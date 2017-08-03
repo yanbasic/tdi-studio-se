@@ -63,10 +63,6 @@ public class GenericNodeActionProvier extends MetedataNodeActionProvier {
                 } else {
                     List<ComponentWizard> wizards = GenericConnectionUtil.getAllWizards(repNode);
                     for (ComponentWizard wizard : wizards) {
-                        ComponentWizardDefinition definition = wizard.getDefinition();
-                        if (definition.isTopLevel()) {
-                            continue;
-                        }
                         createAndAddAction(manager, wizard, sel);
                     }
                 }
