@@ -2940,6 +2940,15 @@
               name="Configure the new INCLUDTRASHFILES property to 'true' in order to keep the same behavior as before"
               version="6.5.1">
         </projecttask>
+        <projecttask
+              beforeLogon="true"
+              breaks="6.5.0"
+              class="org.talend.repository.model.migration.ResetMavenTemplateMigrationTask"
+              description="Reset to new maven template"
+              id="org.talend.repository.model.migration.ResetMavenTemplateMigrationTask"
+              name="ResetMavenTemplateMigrationTask"
+              version="6.5.0">
+        </projecttask>
    </extension>
 
    <extension
