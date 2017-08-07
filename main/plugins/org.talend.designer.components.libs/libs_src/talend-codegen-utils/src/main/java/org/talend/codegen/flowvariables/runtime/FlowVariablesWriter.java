@@ -192,8 +192,8 @@ public class FlowVariablesWriter<WriteT> implements WriterWithFeedback<WriteT, O
     }
 
     @Override
-    public void cleanFeedbackData() {
-        wrappedWriter.cleanFeedbackData();
+    public void cleanWrites() {
+        wrappedWriter.cleanWrites();
     }
 
 }
