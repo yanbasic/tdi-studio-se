@@ -1,0 +1,70 @@
+<%@ jet 
+imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.core.model.metadata.types.JavaTypesManager
+		java.util.List
+		java.util.Map" 
+%>
+<% 
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+  	String cid = node.getUniqueName();
+  	
+    String tableAction = ElementParameterParser.getValue(node,"__TABLE_ACTION__");
+    String table = ElementParameterParser.getValue(node,"__TABLE__");
+  	%>
+  	int nb_line_<%=cid %>=0;
+  	<%
+  		if("NONE".equals(tableAction)){
+  		%>
+  	
+  	    com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.getTable(<%=table%>);
+  	
+  	    <%
+  		}else if("DROP_CREATE".equals(tableAction)){
+  		%>
+  		com.mapr.db.MapRDB.deleteTable(<%=table%>);
+  		com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.createTable(<%=table%>);
+  		  	<%
+  		}else if("CREATE".equals(tableAction)){
+  		%>
+  		com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.createTable(<%=table%>);
+  		  	<%
+  		}else if("CREATE_IF_NOT_EXISTS".equals(tableAction)){
+  		%>
+  		if(!com.mapr.db.MapRDB.tableExists(<%=table%>)){
+  		    com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.createTable(<%=table%>);
+  		}
+  		
+  		  	<%
+  		}else if("DROP_IF_EXISTS_AND_CREATE".equals(tableAction)){
+  		%>
+  		
+  		if(com.mapr.db.MapRDB.tableExists(<%=table%>)){
+  		    com.mapr.db.MapRDB.deleteTable(<%=table%>);
+  		}
+  		com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.createTable(<%=table%>);
+  		
+  		  	<%
+  		}else if("TRUNCATE".equals(tableAction)){
+  		%>
+  		com.mapr.db.Table table_<%=cid%> = com.mapr.db.MapRDB.getTable(<%=table%>);
+  		  	    // all recordss in the table
+	    org.ojai.DocumentStream rst_<%=cid%> = table_<%=cid%>.find();
+        java.util.Iterator<org.ojai.Document> itrst_<%=cid%> = rst_<%=cid%>.iterator();
+        org.ojai.Document readRecord_<%=cid%>;
+        while (itrst_<%=cid%>.hasNext()) {
+          readRecord_<%=cid%> = itrst_<%=cid%>.next();
+          table_<%=cid%>.delete(readRecord_<%=cid%>.getId());
+        }
+        rst_<%=cid%>.close();
+        table_<%=cid%>.flush();
+  		  	<%
+  		}
+  		%>
