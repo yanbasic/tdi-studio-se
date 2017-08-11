@@ -208,6 +208,6 @@ com.google.api.services.drive.Drive <%=cid%>_client;
 %>
 			}
 			else {
-	              <%=dataOutputConnection%>.content = null;
+			    <%=dataOutputConnection%>.content = null;
 			}
 		}
