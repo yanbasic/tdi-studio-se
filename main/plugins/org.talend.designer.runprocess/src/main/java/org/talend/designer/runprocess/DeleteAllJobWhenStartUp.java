@@ -48,7 +48,7 @@ public class DeleteAllJobWhenStartUp implements IStartup {
     public static boolean executed;
 
     public void startup() {
-        earlyStartup();
+        // earlyStartup();
     }
     
     @Deprecated

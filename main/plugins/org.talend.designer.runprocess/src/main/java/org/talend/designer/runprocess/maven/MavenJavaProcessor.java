@@ -74,7 +74,7 @@ public class MavenJavaProcessor extends JavaProcessor {
             generatePom(option);
         }
 
-        updateProjectPom(null);
+        // updateProjectPom(null);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class MavenJavaProcessor extends JavaProcessor {
      */
     protected IFile getPomFile() {
         if (isStandardJob()) {
-            String pomFileName = PomUtil.getPomFileName(this.getProperty().getLabel(), this.getProperty().getVersion());
+            String pomFileName = TalendMavenConstants.POM_FILE_NAME;
             return this.getTalendJavaProject().getProject().getFile(pomFileName);
         } else { // not standard job, won't have pom file.
             return null;
@@ -208,7 +208,7 @@ public class MavenJavaProcessor extends JavaProcessor {
      */
     protected IFile getAssemblyFile() {
         if (isStandardJob()) {
-            String assemblyFileName = PomUtil.getAssemblyFileName(this.getProperty().getLabel(), this.getProperty().getVersion());
+            String assemblyFileName = TalendMavenConstants.ASSEMBLY_FILE_NAME;
             return this.getTalendJavaProject().getAssembliesFolder().getFile(assemblyFileName);
         } else { // not standard job, won't have assembly file.
             return null;
@@ -270,6 +270,7 @@ public class MavenJavaProcessor extends JavaProcessor {
 
         createTemplatePom.setAssemblyFile(getAssemblyFile());
 
+        // TODO extract to somewhere like ItemResourceUtil?
         IPath itemLocationPath = ItemResourceUtil.getItemLocationPath(this.getProperty());
         IFolder objectTypeFolder = ItemResourceUtil.getObjectTypeFolder(this.getProperty());
         if (itemLocationPath != null && objectTypeFolder != null) {

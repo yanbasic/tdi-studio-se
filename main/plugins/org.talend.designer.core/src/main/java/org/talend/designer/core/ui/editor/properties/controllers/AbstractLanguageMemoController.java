@@ -130,7 +130,7 @@ public abstract class AbstractLanguageMemoController extends AbstractElementProp
                     TalendJavaEditor javaEditor = ((AbstractMultiPageTalendEditor) process.getEditor()).getCodeEditor();
 
                     viewer = TalendJavaSourceViewer.createViewerForComponent(b, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL
-                            | SWT.H_SCROLL | SWT.WRAP, javaEditor, null, elem.getElementName(), context);
+                            | SWT.H_SCROLL | SWT.WRAP, process, javaEditor, null, elem.getElementName(), context);
                     text = viewer.getTextWidget();
                     IPreferenceStore preferenceStore = CorePlugin.getDefault().getPreferenceStore();
                     FontData fontData = PreferenceConverter.getFontData(preferenceStore,
@@ -169,11 +169,11 @@ public abstract class AbstractLanguageMemoController extends AbstractElementProp
                         if (connection.getLineStyle().equals(EConnectionType.RUN_IF)
                                 || connection.getLineStyle().equals(EConnectionType.ROUTE_WHEN)
                                 || connection.getLineStyle().equals(EConnectionType.ROUTE_CATCH)) {
-                            viewer = TalendJavaSourceViewer.createViewerForIfConnection(b);
+                            viewer = TalendJavaSourceViewer.createViewerForIfConnection(b, process);
                         }
                     }
                     if (viewer == null) {
-                        viewer = TalendJavaSourceViewer.createViewer(b, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL
+                        viewer = TalendJavaSourceViewer.createViewer(b, process, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL
                                 | SWT.WRAP, false);
                     }
 

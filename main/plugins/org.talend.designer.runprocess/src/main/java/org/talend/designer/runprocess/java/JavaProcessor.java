@@ -215,7 +215,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
     public JavaProcessor(IProcess process, Property property, boolean filenameFromLabel) {
         super(process);
         this.property = property;
-        this.talendJavaProject = JavaProcessorUtilities.getTalendJavaProject();
+        this.talendJavaProject = TalendJavaProjectManager.getTalendJobJavaProject(property);
         Assert.isNotNull(this.talendJavaProject, Messages.getString("JavaProcessor.notFoundedProjectException"));
         this.project = this.talendJavaProject.getProject();
         if (ProcessUtils.isTestContainer(process)) {

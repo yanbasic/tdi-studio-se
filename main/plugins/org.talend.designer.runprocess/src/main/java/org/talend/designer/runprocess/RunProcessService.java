@@ -26,10 +26,12 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.talend.core.language.ECodeLanguage;
 import org.talend.core.language.ICodeProblemsChecker;
 import org.talend.core.model.general.ModuleNeeded;
+import org.talend.core.model.general.Project;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
 import org.talend.core.model.properties.Property;
+import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.projectsetting.ProjectPreferenceManager;
 import org.talend.designer.core.ui.action.SaveJobBeforeRunAction;
@@ -359,7 +361,7 @@ public class RunProcessService implements IRunProcessService {
      * @see org.talend.designer.runprocess.IRunProcessService#getTalendProcessJavaProject()
      */
     @Override
-    public ITalendProcessJavaProject getTalendProcessJavaProject() {
+    public ITalendProcessJavaProject getTalendProcessJavaProject() {    // TODO check all callers
         return delegateService.getTalendProcessJavaProject();
     }
 
@@ -386,6 +388,26 @@ public class RunProcessService implements IRunProcessService {
     @Override
     public void storeProjectPreferences(IPreferenceStore preferenceStore) {
         delegateService.storeProjectPreferences(preferenceStore);
+    }
+
+    @Override
+    public void initMavenJavaProject(Project project) {
+        delegateService.initMavenJavaProject(project);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTalendCodeJavaProject(ERepositoryObjectType type) {
+        return delegateService.getTalendCodeJavaProject(type);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        return delegateService.getTalendJobJavaProject(property);
+    }
+
+    @Override
+    public void deleteEclipseProjects() {
+        delegateService.deleteEclipseProjects();
     }
 
 }

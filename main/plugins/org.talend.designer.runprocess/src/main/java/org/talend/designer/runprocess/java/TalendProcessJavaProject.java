@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaProject;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.generation.JavaUtils;
+import org.talend.core.model.properties.Property;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.process.TalendProcessArgumentConstant;
 import org.talend.designer.maven.launch.MavenPomCommandLauncher;
@@ -46,6 +47,8 @@ import org.talend.utils.io.FilesUtils;
 public class TalendProcessJavaProject implements ITalendProcessJavaProject {
 
     private IJavaProject javaProject;
+    
+    private Property property;
 
     private final MavenPomSynchronizer synchronizer;
 
@@ -54,6 +57,16 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
         this.javaProject = javaProject;
         this.synchronizer = new MavenPomSynchronizer(this);
 
+    }
+    
+    public TalendProcessJavaProject(IJavaProject javaProject, Property property) {
+        this(javaProject);
+        this.property = property;
+    }
+
+    @Override
+    public Property getPropery() {
+        return property;
     }
 
     @Override
@@ -364,11 +377,6 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
     @Override
     public void regenerateMainProjectPom(IProgressMonitor monitor) throws Exception {
         this.synchronizer.regenerateMainProjectPom(monitor, null);
-    }
-
-    @Override
-    public void setSynchronizerArgumentMap(Map<String, Object> argumentsMap) {
-        synchronizer.setArgumentsMap(argumentsMap);
     }
 
 }

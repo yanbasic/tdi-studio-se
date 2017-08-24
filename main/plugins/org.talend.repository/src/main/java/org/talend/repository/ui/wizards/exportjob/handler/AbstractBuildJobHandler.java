@@ -86,7 +86,7 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler {
             this.exportChoice = new HashMap<ExportChoice, Object>();
         }
         IRunProcessService runProcessService = CorePlugin.getDefault().getRunProcessService();
-        this.talendProcessJavaProject = runProcessService.getTalendProcessJavaProject();
+        this.talendProcessJavaProject = runProcessService.getTalendJobJavaProject(processItem.getProperty());
         IFolder targetFolder = talendProcessJavaProject.getTargetFolder();
         try {
             ResourceUtils.emptyFolder(targetFolder);

@@ -46,10 +46,13 @@ import org.talend.core.language.ECodeLanguage;
 import org.talend.core.language.ICodeProblemsChecker;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.general.ModuleNeeded;
+import org.talend.core.model.general.Project;
+import org.talend.core.model.general.TalendJobNature;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
 import org.talend.core.model.properties.Property;
+import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.runprocess.data.PerformanceData;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.utils.Log4jUtil;
@@ -59,6 +62,7 @@ import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.tools.ProjectPomManager;
 import org.talend.designer.runprocess.i18n.Messages;
 import org.talend.designer.runprocess.java.JavaProcessorUtilities;
+import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.designer.runprocess.language.SyntaxCheckerFactory;
 import org.talend.designer.runprocess.mapreduce.MapReduceJavaProcessor;
 import org.talend.designer.runprocess.maven.MavenJavaProcessor;
@@ -583,6 +587,30 @@ public class DefaultRunProcessService implements IRunProcessService {
         };
         workUnit.setAvoidUnloadResources(true);
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(workUnit);
+    }
+
+    @Override
+    public void initMavenJavaProject(Project project) {
+        TalendJavaProjectManager.initJavaProjects(project);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTalendCodeJavaProject(ERepositoryObjectType type) {
+        return TalendJavaProjectManager.getTalendCodeJavaProject(type);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        return TalendJavaProjectManager.getTalendJobJavaProject(property);
+    }
+
+    @Override
+    public void deleteEclipseProjects() {
+        try {
+            TalendJavaProjectManager.deleteEclipseProjectByNatureId(TalendJobNature.ID);
+        } catch (CoreException e) {
+            ExceptionHandler.process(e);
+        }
     }
 
 }
