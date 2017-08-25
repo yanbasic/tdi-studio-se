@@ -182,7 +182,6 @@ public class ModuleListController extends AbstractElementPropertySectionControll
                             // anything
                             return null;
                         }
-                        CorePlugin.getDefault().getLibrariesService().resetModulesNeeded();
                         return new PropertyChangeCommand(elem, name, value);
                     }
                 }

@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -50,12 +49,9 @@ import org.talend.commons.utils.io.FilesUtils;
 import org.talend.core.CorePlugin;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ILibraryManagerService;
-import org.talend.core.language.ECodeLanguage;
-import org.talend.core.model.general.ModuleNeeded;
 import org.talend.core.model.properties.RoutineItem;
 import org.talend.designer.core.model.utils.emf.component.ComponentFactory;
 import org.talend.designer.core.model.utils.emf.component.IMPORTType;
-import org.talend.librariesmanager.prefs.LibrariesManagerUtils;
 import org.talend.repository.i18n.Messages;
 
 /**
@@ -69,6 +65,8 @@ public class ConfigExternalJarPage extends ConfigExternalLibPage {
     private Map<IMPORTType, File> newJarFiles = new HashMap<IMPORTType, File>();
 
     private LibraryField libField;
+
+    private RoutineItem routineItem;
 
     /**
      * ConfigExternalJarPage.
@@ -107,8 +105,8 @@ public class ConfigExternalJarPage extends ConfigExternalLibPage {
         libField = new EditJavaRoutineExternalJarField(Messages.getString("ImportExternalJarPage.fileField.label"), //$NON-NLS-1$
                 composite, isReadOnly());
 
-        RoutineItem routine = getSelectedRoutine();
-        routines = routine.getImports();
+        routineItem = getSelectedRoutine();
+        routines = routineItem.getImports();
         libField.setInput(routines);
         Button button = new Button(composite, getMessageType());
         button.setText(Messages.getString("ConfigExternalJarPage.reloadLibrary")); //$NON-NLS-1$
@@ -170,9 +168,8 @@ public class ConfigExternalJarPage extends ConfigExternalLibPage {
                 } catch (Exception e) {
                     ExceptionHandler.process(e);
                 }
-                CorePlugin.getDefault().getLibrariesService().resetModulesNeeded();
-                // TDI-18870
-                CorePlugin.getDefault().getRunProcessService().updateLibraries(new HashSet<ModuleNeeded>(), null);
+
+                CorePlugin.getDefault().getRunProcessService().updateLibraries(routineItem);
                 for (File file : newJarFiles.values()) {
                     try {
                         CorePlugin.getDefault().getLibrariesService().deployProjectLibrary(file);
@@ -185,7 +182,7 @@ public class ConfigExternalJarPage extends ConfigExternalLibPage {
 
         return true;
     }
-    
+
     /*
      * (non-Javadoc)
      * 
