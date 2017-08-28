@@ -245,7 +245,6 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
         uriBuilder.filter("EntitySetName eq '" + entitySetName + "'");
         ODataEntitySetIteratorRequest<ClientEntitySet, ClientEntity> request = odataClient.getRetrieveRequestFactory()
                 .getEntitySetIteratorRequest(uriBuilder.build());
-//        request.addCustomHeader(HttpHeader.AUTHORIZATION, "Bearer " + authResult.getAccessToken());
         this.authStrategy.configureRequest(request);
         
         ODataRetrieveResponse<ClientEntitySetIterator<ClientEntitySet, ClientEntity>> response = request.execute();

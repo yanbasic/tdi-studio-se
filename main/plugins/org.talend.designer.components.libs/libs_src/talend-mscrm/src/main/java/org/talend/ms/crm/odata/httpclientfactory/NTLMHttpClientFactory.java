@@ -26,33 +26,13 @@ public class NTLMHttpClientFactory extends NTLMAuthHttpClientFactory implements 
 
     private ClientConfiguration clientConfiguration;
     private DefaultHttpClientState defaultHttpClientState;
+    private List<IHttpClientFactoryObserver> listeners = new ArrayList<IHttpClientFactoryObserver>();
     
     public NTLMHttpClientFactory(ClientConfiguration conf) {
         super(conf.getUserName(), conf.getPassword(), conf.getWorkstation(), conf.getDomain());
         
         this.clientConfiguration = conf;
     }
-    
-    @Override
-    public DefaultHttpClient create(final HttpMethod method, final URI uri) {
-        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null || defaultHttpClientState.needNewHttpClient()) {
-            DefaultHttpClient httpClient = super.create(method, uri);
-
-            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);
-            HttpConnectionParams.setSoTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);
-
-            defaultHttpClientState = new DefaultHttpClientState(httpClient);
-            fireHttpClientCreated(defaultHttpClientState);
-        }
-        return defaultHttpClientState.getHttpClient();
-        /*DefaultHttpClient httpClient = super.create(method, uri);
-        defaultHttpClientState = new DefaultHttpClientState(httpClient);
-        fireHttpClientCreated(defaultHttpClientState);
-        return httpClient;*/
-    }
-
-    List<IHttpClientFactoryObserver> listeners = new ArrayList<IHttpClientFactoryObserver>();
-
 
     public final void addListener(IHttpClientFactoryObserver l) {
         this.listeners.add(l);
@@ -65,6 +45,20 @@ public class NTLMHttpClientFactory extends NTLMAuthHttpClientFactory implements 
         for (IHttpClientFactoryObserver l : listeners) {
             l.httpClientCreated(defaultHttpClientState);
         }
+    }
+
+    @Override
+    public DefaultHttpClient create(final HttpMethod method, final URI uri) {
+        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null || defaultHttpClientState.needNewHttpClient()) {
+            DefaultHttpClient httpClient = super.create(method, uri);
+
+            HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);
+            HttpConnectionParams.setSoTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);
+
+            defaultHttpClientState = new DefaultHttpClientState(httpClient);
+            fireHttpClientCreated(defaultHttpClientState);
+        }
+        return defaultHttpClientState.getHttpClient();
     }
 
 }

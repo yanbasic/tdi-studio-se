@@ -16,6 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.impl.client.DefaultHttpClient;
 
+/**
+ * This class is a container to generated DefaultHttpClient.
+ * It allows DynamicsCRMClient to retrieve DefaultHttpClient and expire them setting needNewHttpClient to true.
+ */
 public class DefaultHttpClientState {
     
     private AtomicBoolean needNewHttpClient = new AtomicBoolean(false);

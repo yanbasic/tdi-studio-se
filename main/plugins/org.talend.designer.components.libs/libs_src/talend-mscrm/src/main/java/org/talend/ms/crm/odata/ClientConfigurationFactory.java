@@ -14,6 +14,11 @@ package org.talend.ms.crm.odata;
 
 import org.talend.ms.crm.odata.ClientConfiguration.AuthStrategyEnum;
 
+/**
+ * Generate the ClientConfiguration according to wanted authentication.
+ *
+ * Different authentications need different information.
+ */
 public class ClientConfigurationFactory {
 
     public final static ClientConfiguration buildOAuthClientConfiguration(String clientId, String userName, String password, String authoryEndpoint){

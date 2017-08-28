@@ -14,6 +14,9 @@ package org.talend.ms.crm.odata.httpclientfactory;
 
 import org.apache.http.impl.client.DefaultHttpClient;
 
+/**
+ * This interface allows DynamicsCRMClient to retrieve the last generate DefaultHttpClient.
+ */
 public interface IHttpClientFactoryObserver {
 
     public void httpClientCreated(DefaultHttpClientState httpclient);
