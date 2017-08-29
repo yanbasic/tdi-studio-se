@@ -149,7 +149,7 @@ public class TalendJavaSourceViewer extends ReconcilerViewer {
             boolean checkCode, IDocument document) {
         super(parent, verticalRuler, overviewRuler, showAnnotationsOverview, styles, annotationAccess, sharedColors, checkCode,
                 document, null);
-
+        this.process = process;
         int id = currentId++;
         className = TalendJavaSourceViewer.VIEWER_CLASS_NAME + id;
         filename = TalendJavaSourceViewer.VIEWER_CLASS_NAME + id++ + JavaUtils.JAVA_EXTENSION;
@@ -552,8 +552,8 @@ public class TalendJavaSourceViewer extends ReconcilerViewer {
         InputStream codeStream = new ByteArrayInputStream(getDocument().get().getBytes());
         try {
             IRunProcessService runProcessService = getRunProcessService();
-            if (file == null && runProcessService != null) {
-                ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendProcessJavaProject();
+            if (file == null && runProcessService != null && process != null) {
+                ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendJobJavaProject(process.getProperty());
                 if (talendProcessJavaProject == null) {
                     return;
                 }

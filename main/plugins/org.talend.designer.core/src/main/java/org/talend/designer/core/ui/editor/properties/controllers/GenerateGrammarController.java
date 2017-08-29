@@ -380,7 +380,7 @@ public class GenerateGrammarController extends AbstractElementPropertySectionCon
 
         try {
             IRunProcessService service = DesignerPlugin.getDefault().getRunProcessService();
-            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
             if (talendProcessJavaProject == null) {
                 return null;
             }

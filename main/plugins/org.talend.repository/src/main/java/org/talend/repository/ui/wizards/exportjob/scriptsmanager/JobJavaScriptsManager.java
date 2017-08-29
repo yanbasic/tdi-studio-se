@@ -758,7 +758,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             String jobPackagePath = projectName + PATH_SEPARATOR + folderName + PATH_SEPARATOR
                     + JavaUtils.JAVA_CONTEXTS_DIRECTORY;
             ITalendProcessJavaProject talendProcessJavaProject = RepositoryPlugin.getDefault().getRunProcessService()
-                    .getTalendProcessJavaProject();
+                    .getTalendJobJavaProject(processItem.getProperty());
             if (talendProcessJavaProject == null) {
                 return;
             }
@@ -952,7 +952,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             // get different routines.
 
             IRunProcessService service = CorePlugin.getDefault().getRunProcessService();
-            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
             if (talendProcessJavaProject == null) {
                 return;
             }
@@ -991,6 +991,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
                         .getService(ICamelDesignerCoreService.class);
                 if (camelService.isInstanceofCamel(process[0].getItem())) {
                     useBeans = true;
+                    talendProcessJavaProject = service.getTalendCodeJavaProject(ERepositoryObjectType.valueOf("BEANS")); //$NON-NLS-1$
                 }
             }
             addRoutinesSourceCodes(process, resource, talendProcessJavaProject, useBeans);

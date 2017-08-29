@@ -25,13 +25,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -70,9 +66,7 @@ import org.talend.designer.core.model.utils.emf.talendfile.ElementParameterType;
 import org.talend.designer.core.model.utils.emf.talendfile.NodeType;
 import org.talend.designer.core.model.utils.emf.talendfile.ProcessType;
 import org.talend.designer.core.utils.JavaProcessUtil;
-import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.utils.PomUtil;
-import org.talend.designer.maven.utils.TalendCodeProjectUtil;
 import org.talend.designer.runprocess.IRunProcessService;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
@@ -85,41 +79,10 @@ import org.talend.librariesmanager.model.ModulesNeededProvider;
  */
 public class JavaProcessorUtilities {
 
-    /** The java project within the project. */
-    private static ITalendProcessJavaProject talendJavaProject;
 
-    /**
-     * A java project under folder .Java will be created if there is no existed.
-     * 
-     * DOC ggu Comment method "getTalendJavaProject".
-     * 
-     * @return
-     * @throws CoreException
-     */
     public static ITalendProcessJavaProject getTalendJavaProject() {
-        if (talendJavaProject == null) {
-            synchronized (JavaProcessorUtilities.class) {
-                if (talendJavaProject == null) {
-                    try {
-                        IProject project = TalendCodeProjectUtil.initCodeProject(new NullProgressMonitor());
-                        if (project != null) {
-                            IJavaProject javaProject = JavaCore.create(project);
-                            talendJavaProject = new TalendProcessJavaProject(javaProject);
-
-                            // synchronize templates
-                            if (talendJavaProject != null) {
-                                MavenPomSynchronizer pomSynchronizer = new MavenPomSynchronizer(talendJavaProject);
-                                pomSynchronizer.syncTemplates(false);
-                            }
-                        }
-                    } catch (Exception e) {
-                        // create failure, only log it?
-                        ExceptionHandler.process(e);
-                    }
-                }
-            }
-        }
-        return talendJavaProject;
+        // check all callers
+        return null;
     }
 
     /**

@@ -376,7 +376,7 @@ public class TalendProcessJavaProject implements ITalendProcessJavaProject {
 
     @Override
     public void regenerateMainProjectPom(IProgressMonitor monitor) throws Exception {
-        this.synchronizer.regenerateMainProjectPom(monitor, null);
+        // this.synchronizer.regenerateMainProjectPom(monitor, null);
     }
 
 }

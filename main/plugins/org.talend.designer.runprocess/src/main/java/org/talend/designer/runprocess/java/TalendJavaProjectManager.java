@@ -37,6 +37,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.model.general.Project;
+import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.utils.ItemResourceUtil;
@@ -114,6 +115,16 @@ public class TalendJavaProjectManager {
                 manager.createAggregatorFolderPom(jobsPom, DIR_JOBS, PomIdsHelper.getJobGroupId(project.getTechnicalLabel()),
                         monitor);
                 manager.createAggregatorFolderPom(codePom, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel(), monitor); //$NON-NLS-1$
+                
+                // create codes poms
+                manager.createRoutinesPom(routines.getFile(TalendMavenConstants.POM_FILE_NAME), monitor);
+                if (ProcessUtils.isRequiredPigUDFs(null)) {
+                    manager.createPigUDFsPom(pigudfs.getFile(TalendMavenConstants.POM_FILE_NAME), monitor);
+                }
+                if (ProcessUtils.isRequiredBeans(null)) {
+                    manager.createBeansPom(beans.getFile(TalendMavenConstants.POM_FILE_NAME), monitor);
+                }
+                
                 manager.createRootPom(projectPom, monitor);
             }
         } catch (Exception e) {
