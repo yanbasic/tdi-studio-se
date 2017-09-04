@@ -284,7 +284,7 @@ public class DefaultRunProcessService implements IRunProcessService {
         ILibraryManagerService repositoryBundleService = CorePlugin.getDefault().getRepositoryBundleService();
         repositoryBundleService.retrieve(modulesForRoutine, libDir.getAbsolutePath(), true);
         repositoryBundleService.installModules(modulesForRoutine, null);
-        CorePlugin.getDefault().getLibrariesService().refreshModulesNeeded();
+        CorePlugin.getDefault().getLibrariesService().checkLibraries();
     }
 
     /*
