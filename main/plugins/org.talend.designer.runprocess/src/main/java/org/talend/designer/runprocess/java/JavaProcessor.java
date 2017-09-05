@@ -25,11 +25,9 @@ import java.io.LineNumberReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,9 +113,12 @@ import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
+import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.runprocess.IJavaProcessorStates;
 import org.talend.core.model.utils.JavaResourcesHelper;
 import org.talend.core.prefs.ITalendCorePrefConstants;
+import org.talend.core.runtime.maven.MavenArtifact;
+import org.talend.core.runtime.maven.MavenUrlHelper;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.runtime.process.TalendProcessOptionConstants;
@@ -1267,8 +1268,29 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             ITalendProcessJavaProject tProcessJvaProject = this.getTalendJavaProject();
             IFolder classesFolder = tProcessJvaProject.getOutputFolder();
             String outputPath = classesFolder.getLocation().toPortableString();
-            outputPath += classPathSeparator + '.'; // add current path
+            outputPath += classPathSeparator;
             basePath.append(outputPath);
+            
+            ITalendProcessJavaProject routineProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
+            String routineOutputPath = routineProject.getOutputFolder().getLocation().toPortableString();
+            routineOutputPath += classPathSeparator;
+            basePath.append(routineOutputPath);
+            
+            if (ProcessUtils.isRequiredPigUDFs(process)) {
+                ITalendProcessJavaProject pigudfsProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.PIG_UDF);
+                String pigudfsOutputPath = pigudfsProject.getOutputFolder().getLocation().toPortableString();
+                pigudfsOutputPath += classPathSeparator;
+                basePath.append(pigudfsOutputPath);
+            }
+            
+            if (ProcessUtils.isRequiredBeans(process)) {
+                ITalendProcessJavaProject beansProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.valueOf("BEANS")); //$NON-NLS-1$
+                String beansOutputPath = beansProject.getOutputFolder().getLocation().toPortableString();
+                beansOutputPath += classPathSeparator;
+                basePath.append(beansOutputPath);
+            }
+            
+            basePath.append('.'); // add current path
         }
 
         return basePath.toString();
@@ -1306,29 +1328,9 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                 libPath.append(classPathSeparator);
             }
         } else {
-            Set<String> neededLibraries = new LinkedHashSet<String>();
             for (ModuleNeeded neededModule : neededModules) {
-                neededLibraries.add(neededModule.getModuleName());
-            }
-
-            final File libDir = JavaProcessorUtilities.getJavaProjectLibFolder();
-            if (libDir == null) {
-                return ""; //$NON-NLS-1$
-            }
-            File[] jarFiles = libDir.listFiles(FilesUtils.getAcceptJARFilesFilter());
-            
-            Map<String, File> jarFileMap = new HashMap<>();
-            for (File file : jarFiles) {
-                jarFileMap.put(file.getName(), file);
-            }
-            for (String neededLibrary : neededLibraries) {
-                if (jarFileMap.containsKey(neededLibrary)) {
-                    File jarFile = jarFileMap.get(neededLibrary);
-                    if (jarFile.isFile()) {
-                        String singleLibPath = new Path(jarFile.getAbsolutePath()).toPortableString();
-                        libPath.append(singleLibPath).append(classPathSeparator);
-                    }
-                }
+                MavenArtifact artifact = MavenUrlHelper.parseMvnUrl(neededModule.getMavenUri(true));
+                libPath.append(PomUtil.getRelativeClassPathOfArtifact(artifact)).append(classPathSeparator);
             }
         }
 

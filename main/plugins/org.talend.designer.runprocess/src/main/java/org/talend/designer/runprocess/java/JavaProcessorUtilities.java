@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -38,7 +39,9 @@ import org.talend.commons.exception.CommonExceptionHandler;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.PersistenceException;
 import org.talend.commons.ui.gmf.util.DisplayUtils;
+import org.talend.commons.utils.generation.JavaUtils;
 import org.talend.commons.utils.io.FilesUtils;
+import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.CorePlugin;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ILibraryManagerService;
@@ -65,6 +68,7 @@ import org.talend.designer.core.model.utils.emf.component.IMPORTType;
 import org.talend.designer.core.model.utils.emf.talendfile.ElementParameterType;
 import org.talend.designer.core.model.utils.emf.talendfile.NodeType;
 import org.talend.designer.core.model.utils.emf.talendfile.ProcessType;
+import org.talend.designer.core.ui.editor.process.Process;
 import org.talend.designer.core.utils.JavaProcessUtil;
 import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.IRunProcessService;
@@ -73,6 +77,8 @@ import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.RunProcessPlugin;
 import org.talend.designer.runprocess.i18n.Messages;
 import org.talend.librariesmanager.model.ModulesNeededProvider;
+import org.talend.repository.ProjectManager;
+import org.talend.repository.model.RepositoryConstants;
 
 /**
  * DOC nrousseau class global comment. Detailled comment
@@ -292,7 +298,16 @@ public class JavaProcessorUtilities {
         }
         if (alreadyRetrievedModules.isEmpty()) {
             // to update this only one time in one build of full job/subjobs
-            checkAndUpdateLog4jFile();
+            if (process instanceof Process) {
+                IRunProcessService service = null;
+                if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
+                    service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
+                }
+                if (service != null) {
+                    ITalendProcessJavaProject talendProject = service.getTalendJobJavaProject(((Process) process).getProperty());
+                    service.updateLogFiles(talendProject, true);
+                }
+            }
         }
     }
 
@@ -504,44 +519,25 @@ public class JavaProcessorUtilities {
         return -1;
     }
 
-    public static void checkAndUpdateLog4jFile() {
-        try {
-            ITalendProcessJavaProject jProject = JavaProcessorUtilities.getTalendJavaProject();
-            if (jProject != null) {
-                IRunProcessService service = null;
-                if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
-                    service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
-                }
-                if (service != null) {
-                    service.updateLogFiles(jProject.getProject(), true);
-                }
-
-            }
-        } catch (Exception e) {
-            ExceptionHandler.process(e);
-        }
-    }
-
     /**
      * DOC ycbai Comment method "getJavaProjectLibPath".
      * 
      * @return
      */
     public static File getJavaProjectLibFolder() {
+        //TODO remove when m2 dependencies are fully used
         try {
-            ITalendProcessJavaProject jProject = getTalendJavaProject();
-            if (jProject != null) {
-                IFolder libFolder = jProject.getLibFolder();
-                if (libFolder != null) {
-                    File libDir = libFolder.getLocation().toFile();
-                    return libDir;
-                }
+            IProject fsProject = ResourceUtils.getProject(ProjectManager.getInstance().getCurrentProject());
+            IFolder libFolder = ResourceUtils.getFolder(fsProject,
+                    RepositoryConstants.TEMP_DIRECTORY + "/" + JavaUtils.JAVA_LIB_DIRECTORY, false); //$NON-NLS-1$
+            if (!libFolder.exists()) {
+                ResourceUtils.createFolder(libFolder);
             }
+            return libFolder.getLocation().toFile();
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }
         return null;
-
     }
 
     public static boolean hasBatchOrStreamingSubProcess(Item item) throws PersistenceException {

@@ -429,10 +429,9 @@ public class DefaultRunProcessService implements IRunProcessService {
      * @see org.talend.designer.runprocess.IRunProcessService#updateLogFiles(org.eclipse.core.resources.IProject)
      */
     @Override
-    public void updateLogFiles(IProject project, boolean isLogForJob) {
+    public void updateLogFiles(ITalendProcessJavaProject talendJavaProject, boolean isLogForJob) {
         // if directly init or modify log4j,need handle with the log4j under .setting/,if not,means execute or export
         // job,need to copy the latest log4j from .setting/ to /java/src
-        ITalendProcessJavaProject talendJavaProject = JavaProcessorUtilities.getTalendJavaProject();
         if (talendJavaProject == null) {
             return;
         }

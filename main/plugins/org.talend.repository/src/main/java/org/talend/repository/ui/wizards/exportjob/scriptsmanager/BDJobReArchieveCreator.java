@@ -226,7 +226,7 @@ public class BDJobReArchieveCreator {
                 if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
                     IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                             IRunProcessService.class);
-                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(property);
 
                     File targetFolder = new File(talendProcessJavaProject.getTargetFolder().getLocationURI());
                     // In a local mode, the routines/beans/udfs jars are not in the lib folder. We then copy them.

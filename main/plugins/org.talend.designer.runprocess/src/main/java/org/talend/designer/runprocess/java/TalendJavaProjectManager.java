@@ -38,6 +38,7 @@ import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.process.ProcessUtils;
+import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.utils.ItemResourceUtil;
@@ -157,6 +158,9 @@ public class TalendJavaProjectManager {
     }
 
     public static ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        if (!(property.getItem() instanceof ProcessItem)) {
+            return null;
+        }
         String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
         Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
         ITalendProcessJavaProject talendJobJavaProject = talendJobJavaProjects.get(property.getId());

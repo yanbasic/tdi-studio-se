@@ -1058,17 +1058,21 @@ public class JobJavaScriptsManager extends JobScriptsManager {
                 needMappingInSystemRoutine = true;
                 if (needSource) {
                     IRunProcessService service = CorePlugin.getDefault().getRunProcessService();
-                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(resource.getItem().getProperty());
                     if (talendProcessJavaProject == null) {
                         return;
                     }
                     // for db mapping xml
                     IFolder xmlMappingFolder = talendProcessJavaProject.getResourcesFolder()
                             .getFolder(JavaUtils.JAVA_XML_MAPPING);
-                    if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreService.class)) {
-                        ICoreService coreService = (ICoreService) GlobalServiceRegister.getDefault().getService(ICoreService.class);
-                        coreService.synchronizeMapptingXML();
-                        coreService.syncLog4jSettings();
+                    if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
+                        IRunProcessService runService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
+                        ITalendProcessJavaProject talendJavaProject = runService.getTalendJobJavaProject(resource.getItem().getProperty());
+                        if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreService.class)) {
+                            ICoreService coreService = (ICoreService) GlobalServiceRegister.getDefault().getService(ICoreService.class);
+                            coreService.synchronizeMapptingXML(talendJavaProject);
+                            coreService.syncLog4jSettings(talendJavaProject);
+                        }
                     }
                     List<URL> xmlMappingFileUrls = new ArrayList<URL>();
                     if (xmlMappingFolder.exists()) {
@@ -1094,7 +1098,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
                     && GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
                 IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                         IRunProcessService.class);
-                ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendProcessJavaProject();
+                ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendJobJavaProject(resource.getItem().getProperty());
                 if (talendProcessJavaProject != null) {
                     IFolder resourcesFolder = talendProcessJavaProject.getResourcesFolder();
                     IFile log4jFile = resourcesFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
@@ -1334,7 +1338,7 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                     IRunProcessService.class);
             try {
-                ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendProcessJavaProject();
+                ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendJobJavaProject(libResource.getItem().getProperty());
                 if (talendProcessJavaProject != null) {
                     IFolder resourcesFolder = talendProcessJavaProject.getResourcesFolder();
                     IFile log4jFile = resourcesFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
@@ -1565,11 +1569,6 @@ public class JobJavaScriptsManager extends JobScriptsManager {
             include.add(SYSTEM_ROUTINES_PATH);
             if (needMappingInSystemRoutine) {
                 include.add(JavaUtils.JAVA_XML_MAPPING);
-                if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreService.class)) {
-                    ICoreService coreService = (ICoreService) GlobalServiceRegister.getDefault().getService(ICoreService.class);
-                    coreService.synchronizeMapptingXML();
-                    coreService.syncLog4jSettings();
-                }
             }
 
             File jarFile = new File(getTmpFolder() + File.separatorChar + SYSTEMROUTINE_JAR);
