@@ -283,40 +283,6 @@ public class MavenJavaProcessor extends JavaProcessor {
 
     }
 
-    /**
-     * update the project pom, and make sure the standard or fake(Preview/Data view) job can be compiled still.
-     */
-    protected void updateProjectPom(IProgressMonitor monitor) {
-        try {
-            if (monitor == null) {
-                monitor = new NullProgressMonitor();
-            }
-            JavaProcessorUtilities.checkJavaProjectLib(getNeededModules());
-
-            ProjectPomManager pomManager = new ProjectPomManager(getTalendJavaProject().getProject()) {
-
-                @Override
-                protected boolean isStandardJob() {
-                    return MavenJavaProcessor.this.isStandardJob();
-                }
-
-                @Override
-                protected IFile getBasePomFile() {
-                    return MavenJavaProcessor.this.getPomFile();
-                }
-
-            };
-
-            pomManager.setUpdateModules(isStandardJob()); // won't update module for fake job.
-            if (getArguments() != null) {
-                pomManager.setArgumentsMap(getArguments());
-            }
-            pomManager.update(monitor, this);
-        } catch (Exception e) {
-            ExceptionHandler.process(e);
-        }
-    }
-
     @Override
     public void build(IProgressMonitor monitor) throws Exception {
         final ITalendProcessJavaProject talendJavaProject = getTalendJavaProject();

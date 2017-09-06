@@ -220,8 +220,7 @@ public abstract class JobScriptsManager {
         esbCategory,
         esbExportType,
         properties,
-        needAssembly,
-        deployVersion
+        needAssembly
     }
 
     /**

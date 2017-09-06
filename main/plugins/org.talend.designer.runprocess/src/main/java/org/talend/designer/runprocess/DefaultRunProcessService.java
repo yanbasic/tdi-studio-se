@@ -562,7 +562,7 @@ public class DefaultRunProcessService implements IRunProcessService {
     @Override
     public void updateProjectPomWithTemplate() {
         try {
-            ProjectPomManager manager = new ProjectPomManager(getTalendProcessJavaProject().getProject());
+            ProjectPomManager manager = new ProjectPomManager();
             manager.updateFromTemplate(null);
         } catch (Exception e) {
             ExceptionHandler.process(e);
