@@ -15,7 +15,6 @@ package org.talend.repository.preference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +72,7 @@ import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.services.IGITProviderService;
 import org.talend.core.services.ISVNProviderService;
 import org.talend.repository.ProjectManager;
+import org.talend.repository.ReferenceProjectProblemManager;
 import org.talend.repository.RepositoryViewPlugin;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.IRepositoryService;
@@ -380,8 +380,13 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     return;
                 }
             }
-
-            if (checkCycleReference(p, new HashMap<String, Set<String>>())) {
+            List<ProjectReferenceBean> newViewerInput = new ArrayList<ProjectReferenceBean>();
+            newViewerInput.addAll(viewerInput);
+            ProjectReferenceBean referenceBean = new ProjectReferenceBean();
+            referenceBean.setReferenceProject(p.getEmfProject());
+            referenceBean.setReferenceBranch(branch);
+            newViewerInput.add(referenceBean);
+            if (!checkCycleReference(ProjectManager.getInstance().getCurrentProject(), newViewerInput)) {
                 this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorCycleReference"));//$NON-NLS-1$
                 return;
             }
@@ -398,28 +403,15 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     }
                 }
             }
-            ProjectReferenceBean bean = new ProjectReferenceBean();
-            bean.setReferenceProject(p.getEmfProject());
-            bean.setReferenceBranch(branch);
-            viewerInput.add(bean);
+            viewerInput.add(referenceBean);
             viewer.refresh();
         }
     }
-
-    private boolean checkCycleReference(Project project, Map<String, Set<String>> referencedMap) {
-        Set<String> referencedSet = referencedMap.get(project.getTechnicalLabel());
-        if (referencedSet == null) {
-            referencedSet = new HashSet<String>();
-            referencedMap.put(project.getTechnicalLabel(), referencedSet);
-        }
-        if (referencedSet.contains(project.getTechnicalLabel())) {
-            return true;
-        }
-        referencedSet.add(project.getTechnicalLabel());
+    private boolean checkCycleReference(Project project, List<ProjectReferenceBean> newViewerInput) {
         List<ProjectReference> referenceList = null;
         if (project.getTechnicalLabel().equals(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel())) {
             referenceList = new ArrayList<ProjectReference>();
-            for (ProjectReferenceBean bean : viewerInput) {
+            for (ProjectReferenceBean bean : newViewerInput) {
                 ProjectReference pr = PropertiesFactory.eINSTANCE.createProjectReference();
                 pr.setReferencedBranch(bean.getReferenceBranch());
                 pr.setReferencedProject(bean.getReferenceProject());
@@ -428,14 +420,25 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         } else {
             referenceList = project.getProjectReferenceList();
         }
-        for (ProjectReference pr : referenceList) {
-            boolean result = checkCycleReference(new Project(pr.getReferencedProject()), referencedMap);
-            if (result) {
-                return true;
+        if (referenceList.size() == 0) {
+            return false;
+        }
+        Map<String, List<String>> referenceMap = new HashMap<String, List<String>>();
+        List<String> list = new ArrayList<String>();
+        referenceMap.put(project.getTechnicalLabel(), list);
+        for (ProjectReference projetReference : referenceList) {
+            list.add(projetReference.getReferencedProject().getTechnicalLabel());
+            List<ProjectReference> childReferenceList = new Project(projetReference.getReferencedProject())
+                    .getProjectReferenceList();
+            if (childReferenceList.size() > 0) {
+                List<String> childList = new ArrayList<String>();
+                referenceMap.put(projetReference.getReferencedProject().getTechnicalLabel(), childList);
+                for (ProjectReference pr : childReferenceList) {
+                    childList.add(pr.getReferencedProject().getTechnicalLabel());
+                }
             }
         }
-
-        return false;
+        return ReferenceProjectProblemManager.checkCycleReference(referenceMap);
     }
 
     private List<ProjectReference> getAllReferenceProject(org.talend.core.model.properties.Project project) {
