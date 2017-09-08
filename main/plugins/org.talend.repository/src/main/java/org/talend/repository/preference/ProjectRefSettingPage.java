@@ -120,6 +120,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     @Override
     protected Control createContents(Composite parent) {
+        noDefaultAndApplyButton();
         if (PluginChecker.isSVNProviderPluginLoaded()) {
             try {
                 svnProviderService = (ISVNProviderService) GlobalServiceRegister.getDefault()
@@ -162,6 +163,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
             @Override
             public void selectionChanged(SelectionChangedEvent event) {
+                setErrorMessage(null);
                 ISelection selection = viewer.getSelection();
                 removeButton.setEnabled(!selection.isEmpty() && !isReadOnly);
             }
@@ -177,6 +179,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
+                setErrorMessage(null);
                 removeProjectReference();
             }
         });
