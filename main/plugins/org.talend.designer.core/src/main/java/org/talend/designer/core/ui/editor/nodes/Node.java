@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -471,7 +471,10 @@ public class Node extends Element implements IGraphicalNode {
 
     public Node(INode oldNode, IProcess2 process) {
         this.oldcomponent = oldNode.getComponent();
-        this.componentProperties = oldNode.getComponentProperties();
+        if (component != null && component instanceof AbstractBasicComponent) {
+            AbstractBasicComponent comp = (AbstractBasicComponent) component;
+            comp.initNodePropertiesFromSerialized(this, oldNode.getComponentProperties().toSerialized());
+        }
         this.process = process;
         init(oldNode.getComponent());
         needlibrary = false;
@@ -550,7 +553,7 @@ public class Node extends Element implements IGraphicalNode {
             metadataList.add(table);
         }
         // }
-        listReturn = this.component.createReturns();
+        listReturn = this.component.createReturns(this);
 
         if (!reloadingComponent && (uniqueName2 == null || "".equals(uniqueName2))) { //$NON-NLS-1$
             if (this.inOutUniqueName != null) {
