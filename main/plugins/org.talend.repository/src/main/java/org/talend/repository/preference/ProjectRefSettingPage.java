@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -33,8 +34,10 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -53,6 +56,8 @@ import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.PersistenceException;
+import org.talend.commons.ui.runtime.image.EImage;
+import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.core.CorePlugin;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.PluginChecker;
@@ -95,6 +100,10 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     private Combo branchCombo;
 
+    private Button removeButton;
+
+    private Button addButton;
+
     private Project[] projects;
 
     private Project lastSelectedProject;
@@ -106,6 +115,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
     private List<ProjectReferenceBean> viewerInput = new ArrayList<ProjectReferenceBean>();
 
     private boolean isModified = false;
+
+    private boolean isReadOnly = false;
 
     @Override
     protected Control createContents(Composite parent) {
@@ -119,7 +130,12 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 // nothing to do
             }
         }
-
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        int projectRepositoryType = getProjectRepositoryType(currentProject);
+        if ((REPOSITORY_GIT == projectRepositoryType || REPOSITORY_SVN == projectRepositoryType)
+                && this.getRepositoryContext().isOffline()) {
+            isReadOnly = true;
+        }
         Composite composite = new Composite(parent, SWT.None);
         composite.setLayout(new GridLayout(2, false));
         GridData data = new GridData(GridData.FILL_BOTH);
@@ -130,11 +146,11 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
         Group listGroup = new Group(form, SWT.None);
         listGroup.setLayout(new GridLayout(2, false));
-        listGroup.setText(Messages.getString("ReferenceProjectSetupDialog.ListGroup"));//$NON-NLS-1$
+        listGroup.setText(Messages.getString("ReferenceProjectSetupPage.ListGroup"));//$NON-NLS-1$
 
         Group addGroup = new Group(form, SWT.None);
-        addGroup.setLayout(new GridLayout(2, false));
-        addGroup.setText(Messages.getString("ReferenceProjectSetupDialog.AddGroup"));//$NON-NLS-1$
+        addGroup.setLayout(new GridLayout(3, false));
+        addGroup.setText(Messages.getString("ReferenceProjectSetupPage.AddGroup"));//$NON-NLS-1$
 
         viewer = new ListViewer(listGroup, SWT.H_SCROLL | SWT.V_SCROLL);
         viewer.setLabelProvider(new ReferenceProjectLabelProvider());
@@ -142,12 +158,21 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         GridData viewerData = new GridData(GridData.FILL_BOTH);
         viewerData.horizontalSpan = 2;
         viewer.getControl().setLayoutData(viewerData);
+        viewer.addSelectionChangedListener(new ISelectionChangedListener() {
 
-        Button removeButton = new Button(listGroup, SWT.None);
-        removeButton.setText(Messages.getString("ReferenceProjectSetupDialog.ButtonDelete")); //$NON-NLS-1$
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                ISelection selection = viewer.getSelection();
+                removeButton.setEnabled(!selection.isEmpty() && !isReadOnly);
+            }
+        });
+
+        removeButton = new Button(listGroup, SWT.None);
+        removeButton.setText(Messages.getString("ReferenceProjectSetupPage.ButtonDelete")); //$NON-NLS-1$
         GridData removeButtonData = new GridData(GridData.HORIZONTAL_ALIGN_END);
         removeButtonData.horizontalSpan = 2;
         removeButton.setLayoutData(removeButtonData);
+        removeButton.setEnabled(false);
         removeButton.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -158,10 +183,11 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
         Label projectLabel = new Label(addGroup, SWT.None);
         projectLabel.setLayoutData(new GridData());
-        projectLabel.setText(Messages.getString("ReferenceProjectSetupDialog.LabelProject"));//$NON-NLS-1$
+        projectLabel.setText(Messages.getString("ReferenceProjectSetupPage.LabelProject"));//$NON-NLS-1$
 
         projectCombo = new Combo(addGroup, SWT.BORDER);
         projectCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        projectCombo.setEnabled(false);
         projectCombo.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -173,28 +199,43 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     lastSelectedProject = project;
                     initBranchData();
                 }
+                updateAddButtonStatus();
+            }
+        });
+        Button refreshButton = new Button(addGroup, SWT.None);
+        refreshButton.setLayoutData(new GridData());
+        refreshButton.setEnabled(!isReadOnly);
+        refreshButton.setImage(ImageProvider.getImage(EImage.REFRESH_ICON));
+        refreshButton.setToolTipText(Messages.getString("ReferenceProjectSetupPage.ButtonTooltipRefresh"));//$NON-NLS-1$
+        refreshButton.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                initProjectData();
             }
         });
 
         Label branchLabel = new Label(addGroup, SWT.None);
         branchLabel.setLayoutData(new GridData());
-        branchLabel.setText(Messages.getString("ReferenceProjectSetupDialog.LabelBranch"));//$NON-NLS-1$
+        branchLabel.setText(Messages.getString("ReferenceProjectSetupPage.LabelBranch"));//$NON-NLS-1$
 
         branchCombo = new Combo(addGroup, SWT.BORDER);
         branchCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        branchCombo.setEnabled(false);
         branchCombo.addSelectionListener(new SelectionAdapter() {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
                 setErrorMessage(null);
+                updateAddButtonStatus();
             }
         });
 
-        Button addButton = new Button(addGroup, SWT.None);
-        GridData addData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-        addData.horizontalSpan = 2;
-        addButton.setLayoutData(addData);
-        addButton.setText(Messages.getString("ReferenceProjectSetupDialog.ButtonAdd")); //$NON-NLS-1$
+        addButton = new Button(addGroup, SWT.None);
+        addButton.setLayoutData(new GridData());
+        addButton.setImage(ImageProvider.getImage(EImage.ADD_ICON));
+        addButton.setToolTipText(Messages.getString("ReferenceProjectSetupPage.ButtonTooltipAdd")); //$NON-NLS-1$
+        addButton.setEnabled(false);
         addButton.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -204,11 +245,16 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         });
 
         form.setWeights(new int[] { 1, 1 });
-        this.setTitle(Messages.getString("ReferenceProjectSetupDialog.Title")); //$NON-NLS-1$
+        this.setTitle(Messages.getString("ReferenceProjectSetupPage.Title")); //$NON-NLS-1$
 
         applyDialogFont(composite);
         initViewerData();
-        initProjectData();
+        if (isReadOnly) {
+            this.setTitle(Messages.getString("ReferenceProjectSetupPage.TitleReadOnly"));
+        } else {
+            this.setTitle(Messages.getString("ReferenceProjectSetupPage.Title"));
+        }
+
         return null;
     }
 
@@ -294,6 +340,29 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         return REPOSITORY_LOCAL;
     }
 
+    private void updateAddButtonStatus() {
+        boolean isEnable = false;
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        int projectRepositoryType = getProjectRepositoryType(currentProject);
+        if (REPOSITORY_LOCAL == projectRepositoryType) {
+            if (StringUtils.isNotEmpty(projectCombo.getText())) {
+                isEnable = true;
+            }
+        } else {
+            if (StringUtils.isNotEmpty(projectCombo.getText()) && StringUtils.isNotEmpty(branchCombo.getText())) {
+                isEnable = true;
+            }
+        }
+        Project p = getCurrentSelectedProject();
+        for (ProjectReferenceBean bean : viewerInput) {
+            if (bean.getReferenceProject().getTechnicalLabel().equals(p.getTechnicalLabel())) {
+                isEnable = false;
+                break;
+            }
+        }
+        addButton.setEnabled(isEnable && !isReadOnly);
+    }
+
     private void initBranchData() {
         this.setErrorMessage(null);
         branchCombo.setEnabled(false);
@@ -307,7 +376,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             return;
         }
         if (projectRepositoryType == REPOSITORY_SVN && this.getRepositoryContext().isOffline()) {
-            this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorCanNotGetSVNBranchData")); //$NON-NLS-1$
+            this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorCanNotGetSVNBranchData")); //$NON-NLS-1$
             return;
         }
         OverTimePopupDialogTask<List<String>> overTimePopupDialogTask = new OverTimePopupDialogTask<List<String>>() {
@@ -370,13 +439,13 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             if (REPOSITORY_LOCAL != projectRepositoryType) {
                 branch = branchCombo.getText();
                 if (branch.length() == 0) {
-                    this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorBranchEmpty"));//$NON-NLS-1$
+                    this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorBranchEmpty"));//$NON-NLS-1$
                     return;
                 }
             }
             for (ProjectReferenceBean bean : viewerInput) {
                 if (bean.getReferenceProject().getTechnicalLabel().equals(p.getTechnicalLabel())) {
-                    this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorContainedProject"));//$NON-NLS-1$
+                    this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorContainedProject"));//$NON-NLS-1$
                     return;
                 }
             }
@@ -387,7 +456,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             referenceBean.setReferenceBranch(branch);
             newViewerInput.add(referenceBean);
             if (!checkCycleReference(ProjectManager.getInstance().getCurrentProject(), newViewerInput)) {
-                this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorCycleReference"));//$NON-NLS-1$
+                this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorCycleReference"));//$NON-NLS-1$
                 return;
             }
             for (ProjectReferenceBean bean : viewerInput) {
@@ -396,7 +465,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     for (ProjectReference pr : referencedProjectList) {
                         if (pr.getReferencedProject().getTechnicalLabel().equals(p.getTechnicalLabel())
                                 && !branch.equals(pr.getReferencedBranch())) {
-                            this.setErrorMessage(Messages.getString("ReferenceProjectSetupDialog.ErrorReferencedByOtherProject",
+                            this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorReferencedByOtherProject",
                                     getProjectDecription(p.getLabel(), pr.getReferencedBranch()), pr.getProject().getLabel()));// $NON-NLS-1$
                             return;
                         }
@@ -407,6 +476,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             viewer.refresh();
         }
     }
+
     private boolean checkCycleReference(Project project, List<ProjectReferenceBean> newViewerInput) {
         List<ProjectReference> referenceList = null;
         if (project.getTechnicalLabel().equals(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel())) {
