@@ -1361,37 +1361,41 @@ if (execStat) {
     
     private static final String NULL_VALUE_EXPRESSION_IN_COMMAND_STRING_FOR_CHILD_JOB_ONLY = "<TALEND_NULL>";
 
-    private final String[][] escapeChars = {
-        {"\\\\","\\"},{"\\n","\n"},{"\\'","\'"},{"\\r","\r"},
-        {"\\f","\f"},{"\\b","\b"},{"\\t","\t"}
-        };
-    private String replaceEscapeChars (String keyValue) {
+	private final char[][] escapeChars = { { 'n', '\n' }, { 'r', '\r' }, { 'f', '\f' }, { 'b', '\b' }, { 't', '\t' },
+			{ '\"', '\"' }, { '\\', '\\' }, { '\'', '\'' } };
+			
+    private String replaceEscapeChars (String contentToReplace) {
 
-		if (keyValue == null || ("").equals(keyValue.trim())) {
-			return keyValue;
+		if (contentToReplace == null || ("").equals(contentToReplace.trim())) {
+			return contentToReplace;
 		}
 
+		char[] contextChars = contentToReplace.toCharArray();
 		StringBuilder result = new StringBuilder();
-		int currIndex = 0;
-		while (currIndex < keyValue.length()) {
-			int index = -1;
-			// judege if the left string includes escape chars
-			for (String[] strArray : escapeChars) {
-				index = keyValue.indexOf(strArray[0],currIndex);
-				if (index>=0) {
+		boolean slashFlag = false;
 
-					result.append(keyValue.substring(currIndex, index + strArray[0].length()).replace(strArray[0], strArray[1]));
-					currIndex = index + strArray[0].length();
-					break;
+		for (char c : contextChars) {
+			if (slashFlag) {
+				for (char[] escapeChar : escapeChars) {
+					if (c == escapeChar[0]) {
+						result.append(escapeChar[1]);
+						slashFlag = false;
+						break;
+					}
+				}
+				if (slashFlag) {
+					result.append('\\').append(c);
+					slashFlag = false;
+				}
+				
+			} else {
+				if (c == '\\') {
+					slashFlag = true;
+				} else {
+					result.append(c);
 				}
 			}
-			// if the left string doesn't include escape chars, append the left into the result
-			if (index < 0) {
-				result.append(keyValue.substring(currIndex));
-				currIndex = currIndex + keyValue.length();
-			}
 		}
-
 		return result.toString();
     }
 
