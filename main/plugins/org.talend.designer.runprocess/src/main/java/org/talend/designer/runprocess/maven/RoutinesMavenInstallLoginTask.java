@@ -42,14 +42,14 @@ public class RoutinesMavenInstallLoginTask implements IRunnableWithProgress {
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 
-        if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
-            IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
-                    IRunProcessService.class);
-            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
-            if (talendProcessJavaProject != null) {
-                talendProcessJavaProject.updateRoutinesPom(true, true);
-            }
-        }
+//        if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
+//            IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
+//                    IRunProcessService.class);
+//            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+//            if (talendProcessJavaProject != null) {
+//                talendProcessJavaProject.updateRoutinesPom(true, true);
+//            }
+//        }
     }
 
 }

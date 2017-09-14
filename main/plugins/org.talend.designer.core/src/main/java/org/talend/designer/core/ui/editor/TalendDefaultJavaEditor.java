@@ -47,7 +47,7 @@ public class TalendDefaultJavaEditor extends CompilationUnitEditor {
                 IRunProcessService runProcessService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                         IRunProcessService.class);
                 // I think runProcessService can't be null, and should throw exception if it is null
-                ITalendProcessJavaProject talendJavaProject = runProcessService.getTalendProcessJavaProject();
+                ITalendProcessJavaProject talendJavaProject = runProcessService.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
                 if (talendJavaProject == null) {
                     return;
                 }

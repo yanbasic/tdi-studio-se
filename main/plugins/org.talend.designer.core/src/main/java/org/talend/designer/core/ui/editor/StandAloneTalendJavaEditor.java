@@ -64,13 +64,14 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.LoginException;
 import org.talend.commons.exception.PersistenceException;
 import org.talend.commons.runtime.model.repository.ERepositoryStatus;
-import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.utils.VersionUtils;
+import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.CorePlugin;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.general.Project;
@@ -89,7 +90,6 @@ import org.talend.core.repository.constants.Constant;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.ui.editor.RepositoryEditorInput;
 import org.talend.core.runtime.CoreRuntimePlugin;
-import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.services.IUIRefresher;
 import org.talend.core.ui.ILastVersionChecker;
 import org.talend.core.ui.branding.IBrandingService;
@@ -395,17 +395,11 @@ public class StandAloneTalendJavaEditor extends CompilationUnitEditor implements
             bgColorForEditabeItem.dispose();
         }
 
-        ITalendProcessJavaProject talendProcessJavaProject = CorePlugin.getDefault().getRunProcessService()
-                .getTalendProcessJavaProject();
-        if (talendProcessJavaProject != null) {
-            talendProcessJavaProject.updateRoutinesPom(true, true);
-        }
-
         // only for sql template
         if (item instanceof SQLPatternItem) {
-            IProject jProject = talendProcessJavaProject.getProject();
             ResourceChangeEvent event = new ResourceChangeEvent(item, IResourceChangeEvent.PRE_CLOSE, 1, null);
             try {
+                IProject jProject = ResourceUtils.getProject(ProjectManager.getInstance().getCurrentProject());
                 Field resourceField = event.getClass().getDeclaredField("resource"); //$NON-NLS-1$
                 resourceField.setAccessible(true);
                 resourceField.set(event, jProject);

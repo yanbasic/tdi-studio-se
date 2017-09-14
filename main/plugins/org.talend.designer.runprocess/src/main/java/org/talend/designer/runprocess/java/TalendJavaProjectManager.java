@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.talend.commons.exception.ExceptionHandler;
+import org.talend.commons.ui.runtime.CommonUIPlugin;
 import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.process.ProcessUtils;
@@ -61,18 +62,19 @@ public class TalendJavaProjectManager {
 
     private static Map<String, ITalendProcessJavaProject> talendJobJavaProjects = new HashMap<>();
 
+    private static boolean initialized;
+    
     public static void initJavaProjects(Project project) {
         // TODO should surround by workunit
         try {
             IFolder poms = getProjectPomsFolder(project);
             if (!poms.exists()) {
+                initialized = false;
                 IProgressMonitor monitor = new NullProgressMonitor();
                 poms.create(true, true, monitor);
                 // create project pom.
                 IFile projectPom = ResourceUtils.getFile(poms, TalendMavenConstants.POM_FILE_NAME, false);
 
-                // install root pom
-                new MavenPomCommandLauncher(projectPom, TalendMavenConstants.GOAL_INSTALL).execute(monitor);
                 // create codes folder
                 IFolder code = poms.getFolder(DIR_CODES);
                 code.create(true, true, null);
@@ -127,14 +129,38 @@ public class TalendJavaProjectManager {
                 }
                 
                 manager.createRootPom(projectPom, monitor);
+                    
+                if (CommonUIPlugin.isFullyHeadless()) {
+                    installRootPom(projectPom);
+                }
+            } else {
+                initialized = true;
             }
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }
     }
+    
+    public static void installRootPom(IFile pomFile) {
+        if (initialized) {
+            return;
+        }
+        if (pomFile == null) {
+            pomFile = getProjectPomsFolder(ProjectManager.getInstance().getCurrentProject()).getFile(TalendMavenConstants.POM_FILE_NAME);
+        }
+        try {
+            new MavenPomCommandLauncher(pomFile, TalendMavenConstants.GOAL_INSTALL).execute(new NullProgressMonitor());
+            initialized = true;
+        } catch (Exception e) {
+            ExceptionHandler.process(e);
+        }
+    }
+    
+    public static boolean isRootPomInstalled() {
+        return initialized;
+    }
 
     public static ITalendProcessJavaProject getTalendCodeJavaProject(ERepositoryObjectType type) {
-        // TODO for now always use current project
         Project project = ProjectManager.getInstance().getCurrentProject();
         ITalendProcessJavaProject talendCodeJavaProject = talendCodeJavaProjects.get(type);
         if (talendCodeJavaProject == null || talendCodeJavaProject.getProject() == null
@@ -149,6 +175,7 @@ public class TalendJavaProjectManager {
                 }
                 IJavaProject javaProject = JavaCore.create(codeProject);
                 talendCodeJavaProject = new TalendProcessJavaProject(javaProject);
+                talendCodeJavaProject.cleanMavenFiles(monitor);
                 talendCodeJavaProjects.put(type, talendCodeJavaProject);
             } catch (Exception e) {
                 ExceptionHandler.process(e);
@@ -169,7 +196,7 @@ public class TalendJavaProjectManager {
             try {
                 IProgressMonitor monitor = new NullProgressMonitor();
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                IProject jobProject = root.getProject(project.getTechnicalLabel() + "_" + property.getLabel());
+                IProject jobProject = root.getProject(project.getTechnicalLabel() + "_" + property.getLabel()); //$NON-NLS-1$
                 IPath itemRelativePath = ItemResourceUtil.getItemRelativePath(property);
                 String jobFolderName = "item_" + property.getLabel(); //$NON-NLS-1$
                 ERepositoryObjectType type = ERepositoryObjectType.getItemType(property.getItem());
@@ -273,6 +300,14 @@ public class TalendJavaProjectManager {
                 IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
                 for (IProject project : projects) {
                     if (project.hasNature(natureId)) {
+                        IFile eclipseClasspath = project.getFile(CLASSPATH_FILE_NAME);
+                        if (eclipseClasspath.exists()) {
+                            eclipseClasspath.delete(true, monitor);
+                        }
+                        IFile projectFile = project.getFile(PROJECT_FILE_NAME);
+                        if (projectFile.exists()) {
+                            projectFile.delete(true, monitor);
+                        }
                         project.delete(false, true, monitor);
                     }
                 }

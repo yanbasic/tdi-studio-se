@@ -12,10 +12,10 @@
 // ============================================================================
 package org.talend.designer.runprocess;
 
-import java.io.File;
 import java.util.Set;
 
 import org.apache.log4j.Level;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -376,7 +376,7 @@ public class RunProcessService implements IRunProcessService {
     }
 
     @Override
-    public File getJavaProjectLibFolder() {
+    public IFolder getJavaProjectLibFolder() {
         return delegateService.getJavaProjectLibFolder();
     }
 
@@ -408,6 +408,11 @@ public class RunProcessService implements IRunProcessService {
     @Override
     public void deleteEclipseProjects() {
         delegateService.deleteEclipseProjects();
+    }
+
+    @Override
+    public boolean isExportConfig() {
+        return delegateService.isExportConfig();
     }
 
 }

@@ -430,6 +430,15 @@ public class DefaultRunProcessService implements IRunProcessService {
      */
     @Override
     public void updateLogFiles(ITalendProcessJavaProject talendJavaProject, boolean isLogForJob) {
+        // create the .prefs file and save log4j.xml and common-logging.properties's content into it
+        if (!Log4jPrefsSettingManager.getInstance().isLog4jPrefsExist()) {
+            Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.LOG4J_ENABLE_NODE,
+                    Log4jUtil.isEnable() ? Boolean.TRUE.toString() : Boolean.FALSE.toString());
+            Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.LOG4J_CONTENT_NODE,
+                    getLogTemplate(RESOURCE_LOG_FILE_PATH));
+            Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.COMMON_LOGGING_NODE,
+                    getLogTemplate(RESOURCE_COMMONLOG_FILE_PATH));
+        }
         // if directly init or modify log4j,need handle with the log4j under .setting/,if not,means execute or export
         // job,need to copy the latest log4j from .setting/ to /java/src
         if (talendJavaProject == null) {
@@ -442,15 +451,6 @@ public class DefaultRunProcessService implements IRunProcessService {
 
             IFolder resFolder = talendJavaProject.getResourcesFolder();
             IFile log4jFile = resFolder.getFile(Log4jPrefsConstants.LOG4J_FILE_NAME);
-            // create the .prefs file and save log4j.xml and common-logging.properties's content into it
-            if (!Log4jPrefsSettingManager.getInstance().isLog4jPrefsExist()) {
-                Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.LOG4J_ENABLE_NODE,
-                        Log4jUtil.isEnable() ? Boolean.TRUE.toString() : Boolean.FALSE.toString());
-                Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.LOG4J_CONTENT_NODE,
-                        getLogTemplate(RESOURCE_LOG_FILE_PATH));
-                Log4jPrefsSettingManager.getInstance().createTalendLog4jPrefs(Log4jPrefsConstants.COMMON_LOGGING_NODE,
-                        getLogTemplate(RESOURCE_COMMONLOG_FILE_PATH));
-            }
             // TUP-3014, update the log4j in .Java always.
             // if (isLogForJob) { // when execute or export job need the log4j files under .src folder
             String log4jStr = getTemplateStrFromPreferenceStore(Log4jPrefsConstants.LOG4J_CONTENT_NODE);
@@ -538,7 +538,8 @@ public class DefaultRunProcessService implements IRunProcessService {
      */
     @Override
     public ITalendProcessJavaProject getTalendProcessJavaProject() {
-        return JavaProcessorUtilities.getTalendJavaProject();
+        // TODO remove
+        return null;
     }
 
     @Override
@@ -555,8 +556,8 @@ public class DefaultRunProcessService implements IRunProcessService {
     }
 
     @Override
-    public File getJavaProjectLibFolder() {
-        return JavaProcessorUtilities.getJavaProjectLibFolder();
+    public IFolder getJavaProjectLibFolder() {
+        return JavaProcessorUtilities.getJavaProjectLibFolder2();
     }
 
     @Override
@@ -610,6 +611,11 @@ public class DefaultRunProcessService implements IRunProcessService {
         } catch (CoreException e) {
             ExceptionHandler.process(e);
         }
+    }
+
+    @Override
+    public boolean isExportConfig() {
+        return ProcessorUtilities.isExportConfig();
     }
 
 }

@@ -525,6 +525,14 @@ public class JavaProcessorUtilities {
      * @return
      */
     public static File getJavaProjectLibFolder() {
+        IFolder libFolder = getJavaProjectLibFolder2();
+        if (libFolder != null) {
+            return libFolder.getLocation().toFile();
+        }
+        return null;
+    }
+    
+    public static IFolder getJavaProjectLibFolder2() {
         //TODO remove when m2 dependencies are fully used
         try {
             IProject fsProject = ResourceUtils.getProject(ProjectManager.getInstance().getCurrentProject());
@@ -533,7 +541,7 @@ public class JavaProcessorUtilities {
             if (!libFolder.exists()) {
                 ResourceUtils.createFolder(libFolder);
             }
-            return libFolder.getLocation().toFile();
+            return libFolder;
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }

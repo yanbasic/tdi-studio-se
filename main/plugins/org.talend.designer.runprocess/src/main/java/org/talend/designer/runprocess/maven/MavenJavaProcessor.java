@@ -24,7 +24,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.generation.JavaUtils;
@@ -45,13 +44,10 @@ import org.talend.core.runtime.repository.build.IBuildParametes;
 import org.talend.core.runtime.repository.build.IBuildPomCreatorParameters;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.designer.maven.model.TalendMavenConstants;
-import org.talend.designer.maven.tools.ProjectPomManager;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
-import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
-import org.talend.designer.runprocess.java.JavaProcessorUtilities;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.BuildJobManager;
 
 /**
@@ -73,8 +69,6 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (isStandardJob()) {
             generatePom(option);
         }
-
-        // updateProjectPom(null);
     }
 
     @Override
@@ -270,7 +264,6 @@ public class MavenJavaProcessor extends JavaProcessor {
 
         createTemplatePom.setAssemblyFile(getAssemblyFile());
 
-        // TODO extract to somewhere like ItemResourceUtil?
         IPath itemLocationPath = ItemResourceUtil.getItemLocationPath(this.getProperty());
         IFolder objectTypeFolder = ItemResourceUtil.getObjectTypeFolder(this.getProperty());
         if (itemLocationPath != null && objectTypeFolder != null) {

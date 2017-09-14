@@ -150,14 +150,14 @@ public class EditPropertiesAction extends AContextualAction {
             if (node.getObjectType() == ERepositoryObjectType.ROUTINES) {
                 RepositoryManager.syncRoutineAndJoblet(ERepositoryObjectType.ROUTINES);
 
-                if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
-                    IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
-                            IRunProcessService.class);
-                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
-                    if (talendProcessJavaProject != null) {
-                        talendProcessJavaProject.updateRoutinesPom(true, true);
-                    }
-                }
+//                if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
+//                    IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
+//                            IRunProcessService.class);
+//                    ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+//                    if (talendProcessJavaProject != null) {
+//                        talendProcessJavaProject.updateRoutinesPom(true, true);
+//                    }
+//                }
             }
             if (node.getObjectType().getType().equals("SERVICES")) { //$NON-NLS-1$
                 ConnectionItem connectionItem = (ConnectionItem) node.getObject().getProperty().getItem();
