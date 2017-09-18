@@ -15,11 +15,13 @@ package org.talend.repository.preference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -52,8 +54,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
+import org.talend.commons.exception.BusinessException;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.PersistenceException;
 import org.talend.commons.ui.runtime.image.EImage;
@@ -78,15 +85,23 @@ import org.talend.core.services.IGITProviderService;
 import org.talend.core.services.ISVNProviderService;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.ReferenceProjectProblemManager;
+import org.talend.repository.ReferenceProjectProvider;
 import org.talend.repository.RepositoryViewPlugin;
+import org.talend.repository.RepositoryWorkUnit;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.IRepositoryService;
+import org.talend.repository.ui.dialog.AProgressMonitorDialogWithCancel;
 import org.talend.repository.ui.dialog.OverTimePopupDialogTask;
+import org.talend.repository.ui.dialog.ProjectSettingsPreferenceDialog;
 import org.talend.repository.ui.views.IRepositoryView;
 
 public class ProjectRefSettingPage extends ProjectSettingPage {
 
-    public static final String ID = "org.talend.repository.preference.ProjectRefSettingPage";
+    private static Logger log = Logger.getLogger(ProjectRefSettingPage.class);
+
+    public static final String ID = "org.talend.repository.preference.ProjectRefSettingPage"; //$NON-NLS-1$
+
+    public static final String START_BROWSER_ID = "org.talend.rcp.intro.starting.StartingBrowser"; //$NON-NLS-1$
 
     private static final int REPOSITORY_LOCAL = 0;
 
@@ -104,7 +119,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     private Button addButton;
 
-    private Project[] projects;
+    private Project[] allProjects;
 
     private Project lastSelectedProject;
 
@@ -112,11 +127,13 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     private IGITProviderService gitProviderService;
 
-    private List<ProjectReferenceBean> viewerInput = new ArrayList<ProjectReferenceBean>();
+    private List<ProjectReferenceBean> originInput = new ArrayList<ProjectReferenceBean>();
 
-    private boolean isModified = false;
+    private static List<ProjectReferenceBean> viewerInput = new ArrayList<ProjectReferenceBean>();
 
     private boolean isReadOnly = false;
+
+    private String errorMessage;
 
     @Override
     protected Control createContents(Composite parent) {
@@ -131,11 +148,15 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 // nothing to do
             }
         }
-        Project currentProject = ProjectManager.getInstance().getCurrentProject();
-        int projectRepositoryType = getProjectRepositoryType(currentProject);
-        if ((REPOSITORY_GIT == projectRepositoryType || REPOSITORY_SVN == projectRepositoryType)
-                && this.getRepositoryContext().isOffline()) {
+        if (this.getRepositoryContext().isOffline()) {
             isReadOnly = true;
+        }
+        if (!isReadOnly) {
+            String branchSelection = ProjectManager.getInstance()
+                    .getMainProjectBranch(ProjectManager.getInstance().getCurrentProject());
+            if (branchSelection.startsWith(ProjectManager.NAME_TAGS + ProjectManager.SEP_CHAR)) {
+                isReadOnly = true;
+            }
         }
         Composite composite = new Composite(parent, SWT.None);
         composite.setLayout(new GridLayout(2, false));
@@ -170,7 +191,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         });
 
         removeButton = new Button(listGroup, SWT.None);
-        removeButton.setText(Messages.getString("ReferenceProjectSetupPage.ButtonDelete")); //$NON-NLS-1$
+        removeButton.setImage(ImageProvider.getImage(EImage.DELETE_ICON));
+        removeButton.setToolTipText(Messages.getString("ReferenceProjectSetupPage.ButtonTooltipDelete")); //$NON-NLS-1$
         GridData removeButtonData = new GridData(GridData.HORIZONTAL_ALIGN_END);
         removeButtonData.horizontalSpan = 2;
         removeButton.setLayoutData(removeButtonData);
@@ -215,6 +237,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 initProjectData();
+                lastSelectedProject = null;
             }
         });
 
@@ -248,14 +271,13 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         });
 
         form.setWeights(new int[] { 1, 1 });
-        this.setTitle(Messages.getString("ReferenceProjectSetupPage.Title")); //$NON-NLS-1$
 
         applyDialogFont(composite);
         initViewerData();
         if (isReadOnly) {
-            this.setTitle(Messages.getString("ReferenceProjectSetupPage.TitleReadOnly"));
+            this.setTitle(Messages.getString("ReferenceProjectSetupPage.TitleReadOnly")); //$NON-NLS-1$
         } else {
-            this.setTitle(Messages.getString("ReferenceProjectSetupPage.Title"));
+            this.setTitle(Messages.getString("ReferenceProjectSetupPage.Title")); //$NON-NLS-1$
         }
 
         return null;
@@ -266,8 +288,12 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
     }
 
     private void initViewerData() {
-        Project project = ProjectManager.getInstance().getCurrentProject();
-        viewerInput.addAll(getReferenceProjectData(project));
+        if (!ProjectSettingsPreferenceDialog.isInReopen()) {
+            Project project = ProjectManager.getInstance().getCurrentProject();
+            originInput.addAll(getReferenceProjectData(project));
+            viewerInput.clear();
+            viewerInput.addAll(originInput);
+        }
         viewer.setInput(viewerInput);
         viewer.refresh();
     }
@@ -299,20 +325,20 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         };
         overTimePopupDialogTask.setNeedWaitingProgressJob(false);
         try {
-            projects = overTimePopupDialogTask.runTask();
+            allProjects = overTimePopupDialogTask.runTask();
         } catch (Throwable e) {
             errorMessage = e.getLocalizedMessage();
         }
-        if (projects != null && projects.length > 0) {
+        if (allProjects != null && allProjects.length > 0) {
             Project currentProject = ProjectManager.getInstance().getCurrentProject();
             int projectRepositoryType = getProjectRepositoryType(currentProject);
             List<String> itemList = new ArrayList<String>();
-            for (int i = 0; i < projects.length; i++) {
-                if (currentProject.getTechnicalLabel().equals(projects[i].getTechnicalLabel())) {
+            for (int i = 0; i < allProjects.length; i++) {
+                if (currentProject.getTechnicalLabel().equals(allProjects[i].getTechnicalLabel())) {
                     continue;
                 }
-                if (projectRepositoryType == getProjectRepositoryType(projects[i])) {
-                    itemList.add(projects[i].getTechnicalLabel());
+                if (projectRepositoryType == getProjectRepositoryType(allProjects[i])) {
+                    itemList.add(allProjects[i].getTechnicalLabel());
                 }
             }
             projectCombo.setItems(itemList.toArray(new String[0]));
@@ -357,12 +383,17 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             }
         }
         Project p = getCurrentSelectedProject();
-        for (ProjectReferenceBean bean : viewerInput) {
-            if (bean.getReferenceProject().getTechnicalLabel().equals(p.getTechnicalLabel())) {
-                isEnable = false;
-                break;
+        if (p != null) {
+            for (ProjectReferenceBean bean : viewerInput) {
+                if (bean.getReferenceProject().getTechnicalLabel().equals(p.getTechnicalLabel())) {
+                    isEnable = false;
+                    break;
+                }
             }
+        } else {
+            isEnable = false;
         }
+
         addButton.setEnabled(isEnable && !isReadOnly);
     }
 
@@ -425,9 +456,11 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     protected Project getCurrentSelectedProject() {
         String label = projectCombo.getText();
-        for (Project project : projects) {
-            if (label.equals(project.getTechnicalLabel())) {
-                return project;
+        if (allProjects != null) {
+            for (Project project : allProjects) {
+                if (label.equals(project.getTechnicalLabel())) {
+                    return project;
+                }
             }
         }
         return null;
@@ -438,7 +471,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         Project p = getCurrentSelectedProject();
         if (p != null) {
             int projectRepositoryType = this.getProjectRepositoryType(p);
-            String branch = "";
+            String branch = ""; //$NON-NLS-1$
             if (REPOSITORY_LOCAL != projectRepositoryType) {
                 branch = branchCombo.getText();
                 if (branch.length() == 0) {
@@ -452,162 +485,264 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     return;
                 }
             }
-            List<ProjectReferenceBean> newViewerInput = new ArrayList<ProjectReferenceBean>();
-            newViewerInput.addAll(viewerInput);
+
             ProjectReferenceBean referenceBean = new ProjectReferenceBean();
             referenceBean.setReferenceProject(p.getEmfProject());
             referenceBean.setReferenceBranch(branch);
-            newViewerInput.add(referenceBean);
-            if (!checkCycleReference(ProjectManager.getInstance().getCurrentProject(), newViewerInput)) {
-                this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorCycleReference"));//$NON-NLS-1$
-                return;
-            }
-            for (ProjectReferenceBean bean : viewerInput) {
-                List<ProjectReference> referencedProjectList = getAllReferenceProject(bean.getReferenceProject());
-                if (referencedProjectList != null && referencedProjectList.size() > 0) {
-                    for (ProjectReference pr : referencedProjectList) {
-                        if (pr.getReferencedProject().getTechnicalLabel().equals(p.getTechnicalLabel())
-                                && !branch.equals(pr.getReferencedBranch())) {
-                            this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorReferencedByOtherProject",
-                                    getProjectDecription(p.getLabel(), pr.getReferencedBranch()), pr.getProject().getLabel()));// $NON-NLS-1$
-                            return;
-                        }
-                    }
-                }
-            }
             viewerInput.add(referenceBean);
             viewer.refresh();
         }
     }
 
-    private boolean checkCycleReference(Project project, List<ProjectReferenceBean> newViewerInput) {
-        List<ProjectReference> referenceList = null;
-        if (project.getTechnicalLabel().equals(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel())) {
-            referenceList = new ArrayList<ProjectReference>();
-            for (ProjectReferenceBean bean : newViewerInput) {
-                ProjectReference pr = PropertiesFactory.eINSTANCE.createProjectReference();
-                pr.setReferencedBranch(bean.getReferenceBranch());
-                pr.setReferencedProject(bean.getReferenceProject());
-                referenceList.add(pr);
-            }
-        } else {
-            referenceList = project.getProjectReferenceList();
+    /**
+     * 
+     * @param projectRefMap
+     * @return @return false- cycle reference exist otherwise true
+     * @throws PersistenceException
+     * @throws InvalidProjectException
+     */
+    private boolean checkCycleReference(Map<String, List<ProjectReference>> projectRefMap)
+            throws PersistenceException, BusinessException {
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        List<ProjectReference> referenceList = new ArrayList<ProjectReference>();
+        for (ProjectReferenceBean bean : viewerInput) {
+            referenceList.add(getProjectReferenceInstance(bean));
         }
         if (referenceList.size() == 0) {
-            return false;
+            return true;
         }
-        Map<String, List<String>> referenceMap = new HashMap<String, List<String>>();
-        List<String> list = new ArrayList<String>();
-        referenceMap.put(project.getTechnicalLabel(), list);
+        projectRefMap.put(currentProject.getTechnicalLabel(), referenceList);
         for (ProjectReference projetReference : referenceList) {
-            list.add(projetReference.getReferencedProject().getTechnicalLabel());
-            List<ProjectReference> childReferenceList = new Project(projetReference.getReferencedProject())
-                    .getProjectReferenceList();
-            if (childReferenceList.size() > 0) {
-                List<String> childList = new ArrayList<String>();
-                referenceMap.put(projetReference.getReferencedProject().getTechnicalLabel(), childList);
-                for (ProjectReference pr : childReferenceList) {
-                    childList.add(pr.getReferencedProject().getTechnicalLabel());
-                }
-            }
+            List<ProjectReference> childReferenceList = ReferenceProjectProblemManager.getAllReferenceProject(projetReference,
+                    projectRefMap, new HashSet<String>(), true);
+            projectRefMap.put(projetReference.getReferencedProject().getTechnicalLabel(), childReferenceList);
         }
-        return ReferenceProjectProblemManager.checkCycleReference(referenceMap);
+        return ReferenceProjectProblemManager.checkCycleReference(projectRefMap);
     }
 
-    private List<ProjectReference> getAllReferenceProject(org.talend.core.model.properties.Project project) {
-        List<ProjectReference> result = new ArrayList<ProjectReference>();
-        List<ProjectReference> referenceList = new Project(project).getProjectReferenceList();
-        if (referenceList != null && referenceList.size() > 0) {
-            for (ProjectReference reference : referenceList) {
-                reference.setProject(project);
-                result.add(reference);
-                if (new Project(reference.getReferencedProject()).getProjectReferenceList().size() > 0) {
-                    result.addAll(getAllReferenceProject(reference.getReferencedProject()));
-                }
-            }
-        }
-
-        return result;
+    private ProjectReference getProjectReferenceInstance(ProjectReferenceBean bean) {
+        ProjectReference pr = PropertiesFactory.eINSTANCE.createProjectReference();
+        pr.setReferencedBranch(bean.getReferenceBranch());
+        pr.setReferencedProject(bean.getReferenceProject());
+        return pr;
     }
 
+    @SuppressWarnings("unchecked")
     private void removeProjectReference() {
         ISelection selection = viewer.getSelection();
         if (!selection.isEmpty() && selection instanceof IStructuredSelection) {
-            viewerInput.removeAll(((IStructuredSelection) selection).toList());
+            List<ProjectReferenceBean> selectedBeanList = ((IStructuredSelection) selection).toList();
+            final List<Project> usingProjectList = new ArrayList<Project>();
+            Project currentProject = ProjectManager.getInstance().getCurrentProject();
+            List<ProjectReference> currentReferenceList = currentProject.getProjectReferenceList();
+            for (ProjectReferenceBean bean : selectedBeanList) {
+                boolean isUsing = false;
+                for (ProjectReference pr : currentReferenceList) {
+                    if (pr.getReferencedProject().getTechnicalLabel().equals(bean.getReferenceProject().getTechnicalLabel())) {
+                        isUsing = true;
+                        break;
+                    }
+                }
+                if (isUsing) {
+                    usingProjectList.add(new Project(bean.getReferenceProject()));
+                }
+            }
+
+            if (usingProjectList.size() > 0) {
+                AProgressMonitorDialogWithCancel<List<DependenceProblem>> dialog = new AProgressMonitorDialogWithCancel<List<DependenceProblem>>(
+                        this.getShell()) {
+
+                    protected List<DependenceProblem> runWithCancel(IProgressMonitor monitor) throws Throwable {
+                        CheckDependenceTask task = new CheckDependenceTask(usingProjectList);
+                        task.run(monitor);
+                        return task.getProblemList();
+                    }
+                };
+                try {
+                    dialog.run(Messages.getString("ReferenceProjectSetupPage.TaskCheckRelationShips"), null, true, //$NON-NLS-1$
+                            AProgressMonitorDialogWithCancel.ENDLESS_WAIT_TIME);
+                } catch (Exception e) {
+                    setErrorMessage(e.getMessage());
+                }
+                boolean isDelete = true;
+                List<DependenceProblem> problemList = (List<DependenceProblem>) dialog.getExecuteResult();
+                if (problemList.size() > 0) {
+                    Set<String> usingSet = new HashSet<String>();
+                    for (DependenceProblem problem : problemList) {
+                        usingSet.add(problem.getReferencedProject());
+                    }
+                    if (!MessageDialog.openConfirm(getShell(), Messages.getString("ReferenceProjectSetupPage.TitleConfirm"), //$NON-NLS-1$
+                            Messages.getString("ReferenceProjectSetupPage.MessageHaveRelationships"))) { //$NON-NLS-1$
+                        isDelete = false;
+                    }
+                }
+                if (isDelete) {
+                    viewerInput.removeAll(((IStructuredSelection) selection).toList());
+                    viewer.refresh();
+                    updateAddButtonStatus();
+                }
+            } else {
+                viewerInput.removeAll(((IStructuredSelection) selection).toList());
+                viewer.refresh();
+                updateAddButtonStatus();
+            }
         }
-        viewer.refresh();
     }
 
     protected static String getProjectDecription(String projectName, String branch) {
         StringBuffer sb = new StringBuffer();
         sb.append(projectName);
         if (branch != null && branch.trim().length() > 0) {
-            sb.append("/").append(branch);
+            sb.append("/").append(branch); //$NON-NLS-1$
         }
         return sb.toString();
     }
 
     @Override
     public boolean performOk() {
-        saveData();
-        if (isModified) {
-            relogin();
+        if (isModified()) {
+            if (!validate()) {
+                return false;
+            }
+            if (checkOtherEditorsOpened()) {
+                return false;
+            }
+
+            MessageDialog.openInformation(Display.getCurrent().getActiveShell(),
+                    Messages.getString("RepoReferenceProjectSetupAction.TitleReferenceChanged"), //$NON-NLS-1$
+                    Messages.getString("RepoReferenceProjectSetupAction.MsgReferenceChanged")); //$NON-NLS-1$
+            // Apply new setting
+            errorMessage = null;
+            List<ProjectReference> newReferenceSetting = convertToProjectReference(viewerInput);
+            ReferenceProjectProvider.setTempReferenceList(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel(),
+                    newReferenceSetting);
+            try {
+                relogin();
+                saveData();
+            } catch (Exception ex) {
+                setErrorMessage(errorMessage);
+                // If failed, try to roll back
+                ReferenceProjectProvider.removeAllTempReferenceList();
+                try {
+                    relogin();
+                } catch (Exception e) {
+                    ExceptionHandler.process(ex);
+                    log.error("Roll back reference project settings failed:" + ex.getLocalizedMessage()); //$NON-NLS-1$
+                }
+                return false;
+            }
         }
         return super.performOk();
     }
 
-    protected void performApply() {
-        saveData();
+    private boolean checkOtherEditorsOpened() {
+        IWorkbenchWindow workBench = PlatformUI.getWorkbench().getActiveWorkbenchWindow();// .getActivePage().getEditorReferences();
+        if (workBench != null) {
+            IWorkbenchPage page = workBench.getActivePage();
+            IEditorReference[] editors = page.getEditorReferences();
+            boolean isStartBrowser = false;
+            if (editors.length > 0) {
+                if (editors.length == 1 && START_BROWSER_ID.equals(editors[0].getId())) {
+                    isStartBrowser = true;
+                    return false;
+                }
+                if (!isStartBrowser) {
+                    for (IEditorReference editor : editors) {
+                        if (editor.isDirty()) {
+                            setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorEditorsNotSaved"));
+                            return true;
+                        }
+                    }
+                    page.closeAllEditors(true);
+                }
+            }
+        }
+        return false;
     }
 
-    private void saveData() {
-        List<ProjectReferenceBean> originList = getReferenceProjectData(ProjectManager.getInstance().getCurrentProject());
-        if (originList.size() != viewerInput.size()) {
-            isModified = true;
+    private boolean validate() {
+        this.setErrorMessage(null);
+        Map<String, List<ProjectReference>> projectRefMap = new HashMap<String, List<ProjectReference>>();
+        AProgressMonitorDialogWithCancel<Boolean> dialog = new AProgressMonitorDialogWithCancel<Boolean>(this.getShell()) {
+
+            protected Boolean runWithCancel(IProgressMonitor monitor) throws Throwable {
+                return checkCycleReference(projectRefMap);
+            }
+        };
+        try {
+            dialog.run(Messages.getString("ReferenceProjectSetupPage.TaskCheckCycleReference"), null, true, //$NON-NLS-1$
+                    AProgressMonitorDialogWithCancel.ENDLESS_WAIT_TIME);
+        } catch (Exception e) {
+            setErrorMessage(e.getMessage());
         }
-        if (!isModified) {
-            for (ProjectReferenceBean originValue : originList) {
-                boolean isFind = false;
-                for (ProjectReferenceBean value : viewerInput) {
-                    if (originValue.getReferenceProject().getTechnicalLabel()
-                            .equals(value.getReferenceProject().getTechnicalLabel())
-                            && originValue.getReferenceBranch().equals(value.getReferenceBranch())) {
-                        isFind = true;
-                        break;
-                    }
-                }
-                if (!isFind) {
-                    isModified = true;
+        if (!(Boolean) dialog.getExecuteResult()) {
+            this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorCycleReference"));//$NON-NLS-1$
+            return false;
+        }
+
+        try {
+            ReferenceProjectProblemManager.checkMoreThanOneBranch(projectRefMap);
+        } catch (BusinessException e) {
+            setErrorMessage(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isModified() {
+        if (originInput.size() != viewerInput.size()) {
+            return true;
+        }
+        for (ProjectReferenceBean originValue : originInput) {
+            boolean isFind = false;
+            for (ProjectReferenceBean value : viewerInput) {
+                if (originValue.getReferenceProject().getTechnicalLabel().equals(value.getReferenceProject().getTechnicalLabel())
+                        && originValue.getReferenceBranch().equals(value.getReferenceBranch())) {
+                    isFind = true;
                     break;
                 }
             }
-        }
-        if (isModified) {
-            List<ProjectReference> projectReferenceList = new ArrayList<ProjectReference>();
-            for (ProjectReferenceBean bean : viewerInput) {
-                ProjectReference pr = PropertiesFactory.eINSTANCE.createProjectReference();
-                pr.setReferencedBranch(bean.getReferenceBranch());
-                pr.setReferencedProject(bean.getReferenceProject());
-                projectReferenceList.add(pr);
-            }
-            String errorMessages = null;
-            try {
-                ProjectManager.getInstance().getCurrentProject().saveProjectReferenceList(projectReferenceList);
-            } catch (Exception e) {
-                errorMessages = e.getMessage();
-                this.setErrorMessage(errorMessages);
-            }
-            if (errorMessages != null) {
-                return;
+            if (!isFind) {
+                return true;
             }
         }
+        return false;
     }
 
-    private void relogin() {
-        MessageDialog.openInformation(Display.getCurrent().getActiveShell(),
-                Messages.getString("RepoReferenceProjectSetupAction.TitleReferenceChanged"), //$NON-NLS-1$
-                Messages.getString("RepoReferenceProjectSetupAction.MsgReferenceChanged")); //$NON-NLS-1$
+    private List<ProjectReference> convertToProjectReference(List<ProjectReferenceBean> input) {
+        List<ProjectReference> output = new ArrayList<ProjectReference>();
+        for (ProjectReferenceBean bean : input) {
+            ProjectReference pr = PropertiesFactory.eINSTANCE.createProjectReference();
+            pr.setReferencedBranch(bean.getReferenceBranch());
+            pr.setReferencedProject(bean.getReferenceProject());
+            output.add(pr);
+        }
+        return output;
+    }
 
+    @SuppressWarnings("rawtypes")
+    private void saveData() {
+        RepositoryWorkUnit repositoryWorkUnit = new RepositoryWorkUnit(
+                Messages.getString("ReferenceProjectSetupPage.TaskApplyReferenceSetting")) { //$NON-NLS-1$
+
+            public void run() throws PersistenceException {
+                try {
+                    ProjectManager.getInstance().getCurrentProject()
+                            .saveProjectReferenceList(convertToProjectReference(viewerInput));
+                } catch (Exception e) {
+                    errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorSaveReferenceSettingFailed", //$NON-NLS-1$
+                            e.getLocalizedMessage());
+                    log.error("Save reference project settings failed:" + e);//$NON-NLS-1$
+                }
+            }
+        };
+        repositoryWorkUnit.setAvoidUnloadResources(true);
+        repositoryWorkUnit.setUnloadResourcesAfterRun(true);
+        repositoryWorkUnit.setForceTransaction(true);
+        ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(repositoryWorkUnit);
+    }
+
+    private void relogin() throws InvocationTargetException, InterruptedException {
         IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
 
             @Override
@@ -634,6 +769,9 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     monitor.worked(1);
                     monitor.done();
                 } catch (Exception e) {
+                    errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorApplyReferenceSettingFailed", //$NON-NLS-1$
+                            e.getLocalizedMessage());
+                    log.error("Apply new reference project settings failed:" + e);//$NON-NLS-1$
                     throw new CoreException(new Status(Status.ERROR, RepositoryViewPlugin.PLUGIN_ID, e.getMessage(), e));
                 }
             }
@@ -653,11 +791,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             }
         };
         ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
-        try {
-            progressDialog.run(true, false, iRunnableWithProgress);
-        } catch (InvocationTargetException | InterruptedException e) {
-            ExceptionHandler.process(e);
-        }
+        progressDialog.run(true, false, iRunnableWithProgress);
     }
 
     private void refreshNavigatorView() {
@@ -676,17 +810,6 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             }
         });
     }
-
-    private void checkDependence() {
-        List<Project> allReferencedProjectList = new ArrayList<Project>();
-        for (ProjectReferenceBean bean : viewerInput) {
-            org.talend.core.model.properties.Project p = bean.getReferenceProject();
-            Project project = ProjectManager.getInstance().getProjectFromProjectLabel(p.getLabel());
-            allReferencedProjectList.add(project);
-            allReferencedProjectList.addAll(ProjectManager.getInstance().getReferencedProjects(project));
-        }
-    }
-
 }
 
 class ReferenceProjectLabelProvider implements ILabelProvider {
@@ -765,23 +888,29 @@ class CheckDependenceTask implements IRunnableWithProgress {
             RelationshipItemBuilder relationshipBuilder = RelationshipItemBuilder.getInstance();
             relationshipBuilder.load();
             Map<Relation, Set<Relation>> relationMap = relationshipBuilder.getCurrentProjectItemsRelations();
-
+            Project currentProject = ProjectManager.getInstance().getCurrentProject();
             if (relationMap != null && relationMap.size() > 0) {
                 int workedCount = 0;
                 for (Relation relation : relationMap.keySet()) {
                     if (monitor != null && monitor.isCanceled()) {
                         return;
                     }
-                    updateMonitorStatus(monitor, "", relationMap.size(), workedCount++);
+
+                    updateMonitorStatus(monitor,
+                            Messages.getString("ReferenceProjectSetupPage.SubTaskCheckingItem", relation.getId()), //$NON-NLS-1$
+                            relationMap.size(), workedCount++);
                     IRepositoryViewObject viewObject = ProxyRepositoryFactory.getInstance().getLastVersion(relation.getId());
                     Set<Relation> referencedRelationSet = relationMap.get(relation);
                     if (viewObject != null && referencedRelationSet != null) {
                         for (Relation r : referencedRelationSet) {
-                            if (checkRelation(r)) {
+                            Project containerProject = getContainerProject(r);
+                            if (containerProject != null && containerProject != currentProject) {
                                 DependenceProblem problem = new DependenceProblem(r);
                                 problem.setSourceId(viewObject.getId());
                                 problem.setSourceType(viewObject.getRepositoryObjectType());
                                 problem.setSourceName(viewObject.getLabel());
+                                problem.setReferencedProject(containerProject.getLabel());
+
                                 problemList.add(problem);
                                 break;
                             }
@@ -794,22 +923,20 @@ class CheckDependenceTask implements IRunnableWithProgress {
         }
     }
 
-    private boolean checkRelation(Relation relation) throws PersistenceException {
-        // // Check current project
-        // Project currentProject = ProjectManager.getInstance().getCurrentProject();
-        // if (isIncludeInProject(currentProject, relation)) {
-        // return true;
-        // }
-
+    private Project getContainerProject(Relation relation) throws PersistenceException {
+        // Check current project first
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        if (isIncludeInProject(currentProject, relation)) {
+            return currentProject;
+        }
         if (deletingReferenceProject != null && deletingReferenceProject.size() > 0) {
             for (Project project : deletingReferenceProject) {
                 if (isIncludeInProject(project, relation)) {
-                    return true;
+                    return project;
                 }
             }
         }
-
-        return false;
+        return null;
     }
 
     private boolean isIncludeInProject(Project project, Relation relation) throws PersistenceException {
@@ -826,6 +953,14 @@ class CheckDependenceTask implements IRunnableWithProgress {
                 monitor.worked(workedCount);
             }
         }
+    }
+
+    public List<DependenceProblem> getProblemList() {
+        return problemList;
+    }
+
+    public void setProblemList(List<DependenceProblem> problemList) {
+        this.problemList = problemList;
     }
 }
 
