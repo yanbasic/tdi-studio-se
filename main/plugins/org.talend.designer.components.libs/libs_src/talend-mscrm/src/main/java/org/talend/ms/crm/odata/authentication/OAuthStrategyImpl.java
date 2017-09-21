@@ -10,7 +10,7 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package org.talend.ms.crm.odata.auth;
+package org.talend.ms.crm.odata.authentication;
 
 import java.net.Proxy;
 import java.util.concurrent.ExecutorService;
