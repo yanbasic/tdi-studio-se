@@ -412,7 +412,7 @@ public class JavaProcessorUtilities {
                 }
             }
         }
-        repositoryBundleService.deployModules(listModulesReallyNeeded, null);
+        repositoryBundleService.installModules(listModulesReallyNeeded, null);
         if (missingJars != null) {
             handleMissingJarsForProcess(missingJarsForRoutinesOnly, missingJarsForProcessOnly, missingJars);
         }
@@ -469,7 +469,7 @@ public class JavaProcessorUtilities {
             } else {
                 subForMsg(sb.toString());
             }
-            if (!CommonsPlugin.isHeadless()) {
+            if (!CommonsPlugin.isHeadless() && !CommonsPlugin.isJUnitTest()) {
                 Display display = DisplayUtils.getDisplay();
                 if (display != null) {
                     display.syncExec(new Runnable() {
