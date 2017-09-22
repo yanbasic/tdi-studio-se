@@ -193,7 +193,7 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
         }
 
         File libDir = JavaProcessorUtilities.getJavaProjectLibFolder();
-        File targetDir = new File(JavaProcessorUtilities.getTalendJavaProject().getTargetFolder().getLocationURI());
+        File targetDir = new File(getTalendJavaProject().getTargetFolder().getLocationURI());
 
         String libFolder = ""; //$NON-NLS-1$
         if (libDir != null) {
@@ -227,6 +227,7 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
             List<File> files = FileUtils.getAllFilesFromFolder(targetDir, codeJars);
             boolean routinesHaveBeenFound = false;
             for (File f : files) {
+                // TODO routines??
                 if (!routinesHaveBeenFound && f.getName().startsWith(JavaUtils.ROUTINE_JAR_NAME)) {
                     routinesHaveBeenFound = true;
                 }

@@ -538,7 +538,6 @@ public class DefaultRunProcessService implements IRunProcessService {
      */
     @Override
     public ITalendProcessJavaProject getTalendProcessJavaProject() {
-        // TODO remove
         return null;
     }
 
@@ -602,6 +601,11 @@ public class DefaultRunProcessService implements IRunProcessService {
     @Override
     public ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
         return TalendJavaProjectManager.getTalendJobJavaProject(property);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTempJavaProject() {
+        return TalendJavaProjectManager.getTempJavaProject();
     }
 
     @Override

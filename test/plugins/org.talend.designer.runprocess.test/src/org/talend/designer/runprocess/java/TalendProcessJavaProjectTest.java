@@ -44,7 +44,7 @@ public class TalendProcessJavaProjectTest {
      */
     @Before
     public void setUp() throws Exception {
-        talendJavaProject = JavaProcessorUtilities.getTalendJavaProject();
+        talendJavaProject = TalendJavaProjectManager.getTempJavaProject();
         Assert.assertNotNull(talendJavaProject);
     }
 

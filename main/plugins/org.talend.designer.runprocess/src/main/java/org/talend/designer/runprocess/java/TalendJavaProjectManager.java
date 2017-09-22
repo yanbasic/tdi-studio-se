@@ -37,13 +37,16 @@ import org.eclipse.jdt.core.JavaCore;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.CommonUIPlugin;
 import org.talend.commons.utils.workbench.resources.ResourceUtils;
+import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.process.ProcessUtils;
+import org.talend.core.model.properties.JobletProcessItem;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.utils.ItemResourceUtil;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
+import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.designer.maven.launch.MavenPomCommandLauncher;
 import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.AggregatorPomsManager;
@@ -61,9 +64,11 @@ public class TalendJavaProjectManager {
     private static Map<ERepositoryObjectType, ITalendProcessJavaProject> talendCodeJavaProjects = new HashMap<>();
 
     private static Map<String, ITalendProcessJavaProject> talendJobJavaProjects = new HashMap<>();
+    
+    private static ITalendProcessJavaProject tempJavaProject;
 
     private static boolean initialized;
-    
+
     public static void initJavaProjects(Project project) {
         // TODO should surround by workunit
         try {
@@ -118,7 +123,7 @@ public class TalendJavaProjectManager {
                 manager.createAggregatorFolderPom(jobsPom, DIR_JOBS, PomIdsHelper.getJobGroupId(project.getTechnicalLabel()),
                         monitor);
                 manager.createAggregatorFolderPom(codePom, DIR_CODES, "org.talend.codes." + project.getTechnicalLabel(), monitor); //$NON-NLS-1$
-                
+
                 // create codes poms
                 manager.createRoutinesPom(routines.getFile(TalendMavenConstants.POM_FILE_NAME), monitor);
                 if (ProcessUtils.isRequiredPigUDFs(null)) {
@@ -127,9 +132,9 @@ public class TalendJavaProjectManager {
                 if (ProcessUtils.isRequiredBeans(null)) {
                     manager.createBeansPom(beans.getFile(TalendMavenConstants.POM_FILE_NAME), monitor);
                 }
-                
+
                 manager.createRootPom(projectPom, monitor);
-                    
+
                 if (CommonUIPlugin.isFullyHeadless()) {
                     installRootPom(projectPom);
                 }
@@ -140,13 +145,14 @@ public class TalendJavaProjectManager {
             ExceptionHandler.process(e);
         }
     }
-    
+
     public static void installRootPom(IFile pomFile) {
         if (initialized) {
             return;
         }
         if (pomFile == null) {
-            pomFile = getProjectPomsFolder(ProjectManager.getInstance().getCurrentProject()).getFile(TalendMavenConstants.POM_FILE_NAME);
+            pomFile = getProjectPomsFolder(ProjectManager.getInstance().getCurrentProject())
+                    .getFile(TalendMavenConstants.POM_FILE_NAME);
         }
         try {
             new MavenPomCommandLauncher(pomFile, TalendMavenConstants.GOAL_INSTALL).execute(new NullProgressMonitor());
@@ -155,7 +161,7 @@ public class TalendJavaProjectManager {
             ExceptionHandler.process(e);
         }
     }
-    
+
     public static boolean isRootPomInstalled() {
         return initialized;
     }
@@ -174,6 +180,9 @@ public class TalendJavaProjectManager {
                     createMavenJavaProject(monitor, codeProject, codeProjectFolder);
                 }
                 IJavaProject javaProject = JavaCore.create(codeProject);
+                if (!javaProject.isOpen()) {
+                    javaProject.open(new NullProgressMonitor());
+                }
                 talendCodeJavaProject = new TalendProcessJavaProject(javaProject);
                 talendCodeJavaProject.cleanMavenFiles(monitor);
                 talendCodeJavaProjects.put(type, talendCodeJavaProject);
@@ -185,15 +194,26 @@ public class TalendJavaProjectManager {
     }
 
     public static ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        if (property.getItem() instanceof JobletProcessItem) {
+            return getTempJavaProject();
+        }
         if (!(property.getItem() instanceof ProcessItem)) {
             return null;
         }
-        String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
-        Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
-        ITalendProcessJavaProject talendJobJavaProject = talendJobJavaProjects.get(property.getId());
-        if (talendJobJavaProject == null || talendJobJavaProject.getProject() == null
-                || !talendJobJavaProject.getProject().exists()) {
-            try {
+        ITalendProcessJavaProject talendJobJavaProject = null;
+        try {
+            if (GlobalServiceRegister.getDefault().isServiceRegistered(ITestContainerProviderService.class)) {
+                ITestContainerProviderService testContainerService = (ITestContainerProviderService) GlobalServiceRegister
+                        .getDefault().getService(ITestContainerProviderService.class);
+                if (testContainerService.isTestContainerItem(property.getItem())) {
+                    property = testContainerService.getParentJobItem(property.getItem()).getProperty();
+                }
+            }
+            String projectTechName = ProjectManager.getInstance().getProject(property).getTechnicalLabel();
+            Project project = ProjectManager.getInstance().getProjectFromProjectTechLabel(projectTechName);
+            talendJobJavaProject = talendJobJavaProjects.get(property.getId());
+            if (talendJobJavaProject == null || talendJobJavaProject.getProject() == null
+                    || !talendJobJavaProject.getProject().exists()) {
                 IProgressMonitor monitor = new NullProgressMonitor();
                 IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
                 IProject jobProject = root.getProject(project.getTechnicalLabel() + "_" + property.getLabel()); //$NON-NLS-1$
@@ -205,6 +225,9 @@ public class TalendJavaProjectManager {
                     createMavenJavaProject(monitor, jobProject, jobFolder);
                 }
                 IJavaProject javaProject = JavaCore.create(jobProject);
+                if (!javaProject.isOpen()) {
+                    javaProject.open(new NullProgressMonitor());
+                }
                 talendJobJavaProject = new TalendProcessJavaProject(javaProject, property);
                 if (talendJobJavaProject != null) {
                     MavenPomSynchronizer pomSynchronizer = new MavenPomSynchronizer(talendJobJavaProject);
@@ -212,18 +235,37 @@ public class TalendJavaProjectManager {
                     pomSynchronizer.cleanMavenFiles(monitor);
                 }
                 talendJobJavaProjects.put(property.getId(), talendJobJavaProject);
-            } catch (Exception e) {
-                ExceptionHandler.process(e);
             }
+        } catch (Exception e) {
+            ExceptionHandler.process(e);
         }
 
         return talendJobJavaProject;
     }
 
-    public static ITalendProcessJavaProject getTalendProject(IProject project) {
+    public static ITalendProcessJavaProject getTempJavaProject() {
+        if (tempJavaProject == null) {
+            try {
+                IProject project = TalendCodeProjectUtil.initCodeProject(new NullProgressMonitor());
+                if (project != null) {
+                    IJavaProject javaProject = JavaCore.create(project);
+                    if (!javaProject.isOpen()) {
+                        javaProject.open(new NullProgressMonitor());
+                    }
+                    tempJavaProject = new TalendProcessJavaProject(javaProject);
+                }
+            } catch (Exception e) {
+                ExceptionHandler.process(e);
+            }
+        }
+        return tempJavaProject;
+    }
+
+    public static ITalendProcessJavaProject getExistedTalendProject(IProject project) {
         List<ITalendProcessJavaProject> talendProjects = new ArrayList<>();
         talendProjects.addAll(talendCodeJavaProjects.values());
         talendProjects.addAll(talendJobJavaProjects.values());
+        talendProjects.add(tempJavaProject);
         for (ITalendProcessJavaProject talendProject : talendProjects) {
             if (project == talendProject.getProject()) {
                 return talendProject;

@@ -85,9 +85,11 @@ import org.talend.repository.model.RepositoryConstants;
  */
 public class JavaProcessorUtilities {
 
-
+    
+    /**
+     * @deprecated use {@link org.talend.designer.runprocess.java.TalendJavaProjectManager#getTalendJobJavaProject(Property)} instead
+     */
     public static ITalendProcessJavaProject getTalendJavaProject() {
-        // check all callers
         return null;
     }
 
@@ -296,7 +298,7 @@ public class JavaProcessorUtilities {
         } catch (CoreException e) {
             ExceptionHandler.process(e);
         }
-        if (alreadyRetrievedModules.isEmpty()) {
+        if (/*alreadyRetrievedModules.isEmpty()*/ true) { // FIXME check TDI-35139
             // to update this only one time in one build of full job/subjobs
             if (process instanceof Process) {
                 IRunProcessService service = null;
@@ -316,10 +318,6 @@ public class JavaProcessorUtilities {
     // // line in run mode
     private static void sortClasspath(Set<ModuleNeeded> jobModuleList, IProcess process, Set<ModuleNeeded> alreadyRetrievedModules)
             throws CoreException, ProcessorException {
-        ITalendProcessJavaProject jProject = getTalendJavaProject();
-        if (jProject == null) {
-            return;
-        }
         Set<ModuleNeeded> listModulesReallyNeeded = new HashSet<ModuleNeeded>();
         listModulesReallyNeeded.addAll(jobModuleList);
 

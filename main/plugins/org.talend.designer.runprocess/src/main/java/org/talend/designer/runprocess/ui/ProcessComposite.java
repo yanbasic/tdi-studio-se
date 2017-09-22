@@ -96,6 +96,7 @@ import org.talend.core.model.process.ReplaceNodesInProcessProvider;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.prefs.ITalendCorePrefConstants;
 import org.talend.core.ui.CoreUIPlugin;
+import org.talend.core.ui.ITestContainerProviderService;
 import org.talend.core.ui.branding.IBrandingService;
 import org.talend.core.ui.properties.tab.IDynamicProperty;
 import org.talend.designer.core.DesignerPlugin;
@@ -1396,7 +1397,12 @@ public class ProcessComposite extends ScrolledComposite implements IDynamicPrope
         // Add this job to running history list.
         addTrace(1);
         IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-        if (CorePlugin.getDefault().getDesignerCoreService().isTalendEditor(activeEditor)) {
+        boolean isTestContainerEditor = false;
+        if (GlobalServiceRegister.getDefault().isServiceRegistered(ITestContainerProviderService.class)) {
+            ITestContainerProviderService testService = (ITestContainerProviderService) GlobalServiceRegister.getDefault().getService(ITestContainerProviderService.class);
+            isTestContainerEditor = testService.isTestContainerEditor(activeEditor);
+        }
+        if (CorePlugin.getDefault().getDesignerCoreService().isTalendEditor(activeEditor) || isTestContainerEditor) {
             JobLaunchShortcutManager.run(activeEditor);
         } else {
             exec();

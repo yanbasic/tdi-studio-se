@@ -124,7 +124,7 @@ public class JavaRoutineSynchronizer extends AbstractRoutineSynchronizer {
 
     private IFile getTestContainerFile(ProcessItem item, String projectFolderName, String folderName, String jobName) {
         IRunProcessService service = CodeGeneratorActivator.getDefault().getRunProcessService();
-        ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+        ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(item.getProperty());
         if (talendProcessJavaProject == null) {
             return null;
         }

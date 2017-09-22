@@ -361,7 +361,7 @@ public class RunProcessService implements IRunProcessService {
      * @see org.talend.designer.runprocess.IRunProcessService#getTalendProcessJavaProject()
      */
     @Override
-    public ITalendProcessJavaProject getTalendProcessJavaProject() {    // TODO check all callers
+    public ITalendProcessJavaProject getTalendProcessJavaProject() {
         return delegateService.getTalendProcessJavaProject();
     }
 
@@ -403,6 +403,11 @@ public class RunProcessService implements IRunProcessService {
     @Override
     public ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
         return delegateService.getTalendJobJavaProject(property);
+    }
+
+    @Override
+    public ITalendProcessJavaProject getTempJavaProject() {
+        return delegateService.getTempJavaProject();
     }
 
     @Override
