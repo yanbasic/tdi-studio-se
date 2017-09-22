@@ -25,7 +25,7 @@
 		sessionDuration = "15";
 	}
 	
-	boolean set_region = (!useRegionEndpoint && region!=null && !region.isEmpty() && !"DEFAULT".equalsIgnoreCase(region));
+	boolean set_region = (region!=null && !region.isEmpty() && !"DEFAULT".equalsIgnoreCase(region));
 	
 	if(("true").equals(useExistingConn)) {
 		String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
