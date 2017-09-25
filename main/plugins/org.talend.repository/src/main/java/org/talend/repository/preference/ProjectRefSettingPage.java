@@ -674,6 +674,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     AProgressMonitorDialogWithCancel.ENDLESS_WAIT_TIME);
         } catch (Exception e) {
             setErrorMessage(e.getMessage());
+            return false;
         }
         if (!(Boolean) dialog.getExecuteResult()) {
             this.setErrorMessage(Messages.getString("ReferenceProjectSetupPage.ErrorCycleReference"));//$NON-NLS-1$
