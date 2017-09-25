@@ -76,7 +76,7 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
 
     @Override
     public boolean canHandle(Connection connection) {
-        return true;
+        return connection.isGeneric();
     }
 
     @Override
@@ -221,6 +221,9 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
         // TUP-4151
         List<IComponent> neededComponents = new ArrayList<>();
         if (!(item instanceof ConnectionItem)) {
+            return neededComponents;
+        }
+        if(!((ConnectionItem)item).getConnection().isGeneric()){
             return neededComponents;
         }
         IComponentsService service = (IComponentsService) GlobalServiceRegister.getDefault().getService(IComponentsService.class);
