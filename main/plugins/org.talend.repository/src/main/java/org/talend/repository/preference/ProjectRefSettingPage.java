@@ -148,7 +148,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 // nothing to do
             }
         }
-        if (this.getRepositoryContext().isOffline()) {
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        if (this.getRepositoryContext().isOffline() || currentProject.isLocal()) {
             isReadOnly = true;
         }
         if (!isReadOnly) {
