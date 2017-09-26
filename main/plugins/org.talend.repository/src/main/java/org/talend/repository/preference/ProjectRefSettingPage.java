@@ -565,9 +565,12 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 } catch (Exception e) {
                     setErrorMessage(e.getMessage());
                 }
+                if (dialog.getExecuteException() != null) {
+                    setErrorMessage(dialog.getExecuteException().getMessage());
+                }
                 boolean isDelete = true;
                 List<DependenceProblem> problemList = (List<DependenceProblem>) dialog.getExecuteResult();
-                if (problemList.size() > 0) {
+                if (problemList != null && problemList.size() > 0) {
                     Set<String> usingSet = new HashSet<String>();
                     for (DependenceProblem problem : problemList) {
                         usingSet.add(problem.getReferencedProject());
@@ -675,6 +678,10 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     AProgressMonitorDialogWithCancel.ENDLESS_WAIT_TIME);
         } catch (Exception e) {
             setErrorMessage(e.getMessage());
+            return false;
+        }
+        if (dialog.getExecuteException() != null) {
+            setErrorMessage(dialog.getExecuteException().getMessage());
             return false;
         }
         if (!(Boolean) dialog.getExecuteResult()) {
