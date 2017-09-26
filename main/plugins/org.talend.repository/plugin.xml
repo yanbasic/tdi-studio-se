@@ -2932,7 +2932,7 @@
               version="6.5.1">
         </projecttask>
         <projecttask
-              beforeLogon="false"
+              beforeLogon="true"
               class="org.talend.repository.model.migration.UpdateToJava8VersionMigrationTask"
               id="org.talend.repository.model.migration.UpdateToJava8VersionMigrationTask"
               name="UpdateToJava8VersionMigrationTask"
