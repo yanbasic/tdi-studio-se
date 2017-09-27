@@ -43,6 +43,22 @@ boolean exitOnNoRows = ("true").equals(ElementParameterParser.getValue(node, "__
 boolean hasNullString = !null_string.matches("\"\"");
 boolean convertToUppercase = false; // not active this function
 boolean useExistingConnection = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__"));
+
+String compression = ElementParameterParser.getValue(node, "__COMPRESSION__");
+String stream_name = ElementParameterParser.getValue(node, "__STREAM_NAME__");
+boolean is_trailing_null = ("true").equals(ElementParameterParser.getValue(node, "__TRAILING_NULL__"));
+boolean is_skipping = ("true").equals(ElementParameterParser.getValue(node, "__SKIP_OPTION__"));
+String skipping_value = ElementParameterParser.getValue(node, "__SKIP_VALUE__");
+boolean has_terminator = ("true").equals(ElementParameterParser.getValue(node, "__RECORD_TERMINATOR_OPTION__"));
+String terminator_value = ElementParameterParser.getValue(node, "__RECORD_TERMINATOR_VALUE__");
+boolean has_enclosing_char = ("true").equals(ElementParameterParser.getValue(node, "__ENCLOSED_BY_OPTION__"));
+String enclosing_char = ElementParameterParser.getValue(node, "__ENCLOSED_BY_VALUE__");
+boolean is_enforcing_length = ("true").equals(ElementParameterParser.getValue(node, "__ENFORCELENGTH_OPTION__"));
+boolean is_rejected_max = ("true").equals(ElementParameterParser.getValue(node, "__REJECTMAX_OPTION__"));
+String rejected_max_value = ElementParameterParser.getValue(node, "__REJECTMAX_VALUE__");
+boolean is_abort_on_error = ("true").equals(ElementParameterParser.getValue(node, "__ABORT_ON_ERROR_OPTION__"));
+boolean is_no_commit = ("true").equals(ElementParameterParser.getValue(node, "__NO_COMMIT_OPTION__"));
+
 List<IMetadataColumn> columnList = getColumnList(node);    
 String db_version = ElementParameterParser.getValue(node, "__DB_VERSION__");
 
@@ -172,9 +188,30 @@ if(("INSERT").equals(dataAction) || columnList != null && columnList.size() > 0)
 		<%if(useSchema) {%>
 			+ "<%=copySchema %>"
 		<%}%>		
-		+ " FROM STDIN DELIMITER '" +OUT_DELIM_<%=cid %> + "'" 
+		+ " FROM STDIN <%=compression%> STREAM NAME '"+<%=stream_name%>+"' DELIMITER '" +OUT_DELIM_<%=cid %> + "'" 
+		<%if(is_trailing_null){%>
+		+ " TRAILING NULLCOLS"
+		<%}%>
+		<%if(is_skipping){%>
+		+ " SKIP " + <%=skipping_value%>
+		<%}%>
+		<%if(has_terminator){%>
+		+ " RECORD TERMINATOR E'" + <%=terminator_value%> + "'"
+		<%}%>
+		<%if(has_enclosing_char){%>
+		+ " ENCLOSED BY E'" + <%=enclosing_char%> + "'"
+		<%}%>
+		<%if(is_enforcing_length){%>
+		+ " ENFORCELENGTH"
+		<%}%>
+		<%if(is_rejected_max){%>
+		+ " REJECTMAX " + <%=rejected_max_value%>
+		<%}%>
+		<%if(is_abort_on_error){%>
+		+ " ABORT ON ERROR"
+		<%}%>
 		<%if(is_escape_char){%>
-		+ "ESCAPE AS '" + escapechar_<%=cid %> + "'"
+		+ " ESCAPE AS '" + escapechar_<%=cid %> + "'"
 		<%}else{%>
 		+" NO ESCAPE"
 		<%}%>
@@ -190,6 +227,9 @@ if(("INSERT").equals(dataAction) || columnList != null && columnList.size() > 0)
 		<%if(("INSERT").equals(dataAction) && exceptionFile!=null && !"".equals(exceptionFile) && !"\"\"".equals(exceptionFile)) {%>
 			+ " EXCEPTIONS '" + <%=exceptionFile%> + "'"
 		<%}%>
+	    <%if(is_no_commit){%>
+	        + " NO COMMIT"
+	    <%}%>
 		;
 		
 		<%if(isLog4jEnabled){%>

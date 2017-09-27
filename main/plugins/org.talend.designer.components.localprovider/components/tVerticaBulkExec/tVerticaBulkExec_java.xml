@@ -371,13 +371,15 @@
     <PARAMETER
         NAME="REJECTMAX_OPTION" FIELD="CHECK"
         REQUIRED="true"
-        NUM_ROW="150">
+        NUM_ROW="150"
+        NOT_SHOW_IF="ABORT_ON_ERROR_OPTION == 'true'">
       <DEFAULT>false</DEFAULT>
     </PARAMETER>
     <PARAMETER
         NAME="REJECTMAX_VALUE" FIELD="TEXT"
         SHOW_IF="REJECTMAX_OPTION == 'true'"
-        NUM_ROW="150">
+        NUM_ROW="150"
+        NOT_SHOW_IF="ABORT_ON_ERROR_OPTION == 'true'">
       <DEFAULT>"1000"</DEFAULT>
     </PARAMETER>
     
@@ -386,7 +388,7 @@
       FIELD="CHECK"
       NUM_ROW="160"
       REQUIRED="true"
-    >
+      NOT_SHOW_IF="REJECTMAX_OPTION == 'true'">
       <DEFAULT>false</DEFAULT>
     </PARAMETER>
     
