@@ -630,8 +630,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 try {
                     relogin();
                 } catch (Exception e) {
-                    ExceptionHandler.process(ex);
-                    log.error("Roll back reference project settings failed:" + ex.getLocalizedMessage()); //$NON-NLS-1$
+                    ExceptionHandler.process(e);
+                    log.error("Roll back reference project settings failed:" + e.getLocalizedMessage()); //$NON-NLS-1$
                 }
                 return false;
             }
