@@ -133,7 +133,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
     private boolean isReadOnly = false;
 
-    private String errorMessage;
+    private Exception errorException;
 
     @Override
     protected Control createContents(Composite parent) {
@@ -149,7 +149,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
             }
         }
         Project currentProject = ProjectManager.getInstance().getCurrentProject();
-        if (this.getRepositoryContext().isOffline() || currentProject.isLocal()) {
+        if (this.getRepositoryContext().isOffline() || ProxyRepositoryFactory.getInstance().isUserReadOnlyOnCurrentProject()
+                || currentProject.isLocal()) {
             isReadOnly = true;
         }
         if (!isReadOnly) {
@@ -616,26 +617,56 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     Messages.getString("RepoReferenceProjectSetupAction.TitleReferenceChanged"), //$NON-NLS-1$
                     Messages.getString("RepoReferenceProjectSetupAction.MsgReferenceChanged")); //$NON-NLS-1$
             // Apply new setting
-            errorMessage = null;
+            errorException = null;
             List<ProjectReference> newReferenceSetting = convertToProjectReference(viewerInput);
             ReferenceProjectProvider.setTempReferenceList(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel(),
                     newReferenceSetting);
-            try {
-                relogin();
-                saveData();
-            } catch (Exception ex) {
-                setErrorMessage(errorMessage);
-                // If failed, try to roll back
-                ReferenceProjectProvider.removeAllTempReferenceList();
-                try {
-                    relogin();
-                } catch (Exception e) {
-                    ExceptionHandler.process(e);
-                    log.error("Roll back reference project settings failed:" + e.getLocalizedMessage()); //$NON-NLS-1$
+            IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
+
+                @Override
+                public void run(IProgressMonitor monitor) throws CoreException {
+                    try {
+                        relogin(monitor);
+                        saveData();
+                    } catch (Exception ex) {
+                        errorException = ex;
+                        synSetErrorMessage(errorException);
+                        // If failed, try to roll back
+                        ReferenceProjectProvider.removeAllTempReferenceList();
+                        try {
+                            relogin(monitor);
+                        } catch (Exception e) {
+                            ExceptionHandler.process(e);
+                            log.error("Roll back reference project settings failed:" + e); //$NON-NLS-1$
+                        }
+                    }
                 }
-                return false;
+            };
+
+            IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
+
+                @Override
+                public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                    try {
+                        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+                        ISchedulingRule schedulingRule = workspace.getRoot();
+                        workspace.run(workspaceRunnable, schedulingRule, IWorkspace.AVOID_UPDATE, monitor);
+                    } catch (CoreException e) {
+                        throw new InvocationTargetException(e);
+                    }
+                }
+            };
+            ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
+            try {
+                progressDialog.run(true, false, iRunnableWithProgress);
+            } catch (InvocationTargetException | InterruptedException ex) {
+                errorException = ex;
             }
         }
+        if (errorException != null) {
+            return false;
+        }
+
         return super.performOk();
     }
 
@@ -739,8 +770,10 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     ProjectManager.getInstance().getCurrentProject()
                             .saveProjectReferenceList(convertToProjectReference(viewerInput));
                 } catch (Exception e) {
-                    errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorSaveReferenceSettingFailed", //$NON-NLS-1$
+                    errorException = e;
+                    String errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorSaveReferenceSettingFailed", //$NON-NLS-1$
                             e.getLocalizedMessage());
+                    synSetErrorMessage(errorMessage);
                     log.error("Save reference project settings failed:" + e);//$NON-NLS-1$
                 }
             }
@@ -751,56 +784,58 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(repositoryWorkUnit);
     }
 
-    private void relogin() throws InvocationTargetException, InterruptedException {
-        IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
+    private void relogin(IProgressMonitor monitor) throws PersistenceException, BusinessException {
+        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+        monitor.beginTask(Messages.getString("RepoReferenceProjectSetupAction.TaskRelogin"), 10); //$NON-NLS-1$
+        monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogoff")); //$NON-NLS-1$
+        ProxyRepositoryFactory.getInstance().logOffProject();
+        monitor.worked(2);
+        Project[] projects;
+        Project switchProject = null;
+        projects = ProxyRepositoryFactory.getInstance().readProject();
+        for (Project p : projects) {
+            if (p.getTechnicalLabel().equals(currentProject.getTechnicalLabel())) {
+                switchProject = p;
+                break;
+            }
+        }
+        monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogon", switchProject.getLabel())); //$NON-NLS-1$
+        ProxyRepositoryFactory.getInstance().logOnProject(switchProject, monitor);
+        monitor.worked(7);
+        refreshNavigatorView();
+        monitor.worked(1);
+        monitor.done();
+    }
+
+    private void synSetErrorMessage(String message) {
+        Display.getDefault().syncExec(new Runnable() {
 
             @Override
-            public void run(IProgressMonitor monitor) throws CoreException {
-                Project currentProject = ProjectManager.getInstance().getCurrentProject();
-                monitor.beginTask(Messages.getString("RepoReferenceProjectSetupAction.TaskRelogin"), 10); //$NON-NLS-1$
-                monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogoff")); //$NON-NLS-1$
-                ProxyRepositoryFactory.getInstance().logOffProject();
-                monitor.worked(2);
-                Project[] projects;
-                Project switchProject = null;
-                try {
-                    projects = ProxyRepositoryFactory.getInstance().readProject();
-                    for (Project p : projects) {
-                        if (p.getTechnicalLabel().equals(currentProject.getTechnicalLabel())) {
-                            switchProject = p;
-                            break;
-                        }
+            public void run() {
+                setErrorMessage(message == null ? "" : message);
+            }
+        });
+    }
+
+    private void synSetErrorMessage(Exception ex) {
+        Display.getDefault().syncExec(new Runnable() {
+
+            @Override
+            public void run() {
+                String message = null;
+                if (ex instanceof PersistenceException) {
+                    PersistenceException pEx = (PersistenceException) ex;
+                    if (pEx.getCause() instanceof BusinessException) {
+                        BusinessException bEx = (BusinessException) pEx.getCause();
+                        message = bEx.getKey();
                     }
-                    monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogon", switchProject.getLabel())); //$NON-NLS-1$
-                    ProxyRepositoryFactory.getInstance().logOnProject(switchProject, monitor);
-                    monitor.worked(7);
-                    refreshNavigatorView();
-                    monitor.worked(1);
-                    monitor.done();
-                } catch (Exception e) {
-                    errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorApplyReferenceSettingFailed", //$NON-NLS-1$
-                            e.getLocalizedMessage());
-                    log.error("Apply new reference project settings failed:" + e);//$NON-NLS-1$
-                    throw new CoreException(new Status(Status.ERROR, RepositoryViewPlugin.PLUGIN_ID, e.getMessage(), e));
                 }
-            }
-        };
-
-        IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
-
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-                try {
-                    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-                    ISchedulingRule schedulingRule = workspace.getRoot();
-                    workspace.run(workspaceRunnable, schedulingRule, IWorkspace.AVOID_UPDATE, monitor);
-                } catch (CoreException e) {
-                    throw new InvocationTargetException(e);
+                if (message == null || message.length() == 0) {
+                    message = ex.getMessage();
                 }
+                synSetErrorMessage(message);
             }
-        };
-        ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
-        progressDialog.run(true, false, iRunnableWithProgress);
+        });
     }
 
     private void refreshNavigatorView() {
