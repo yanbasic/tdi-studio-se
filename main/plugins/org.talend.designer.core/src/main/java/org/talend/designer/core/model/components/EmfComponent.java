@@ -3174,7 +3174,7 @@ public class EmfComponent extends AbstractBasicComponent {
                         if (!moduleNames.contains(moduleNeeded.getModuleName())) {
                             ModuleNeeded componentImportNeeds = new ModuleNeeded(this.getName(), moduleNeeded.getModuleName(),
                                     moduleNeeded.getInformationMsg(), moduleNeeded.isRequired(), moduleNeeded.getInstallURL(),
-                                    moduleNeeded.getRequiredIf(), moduleNeeded.getMavenUri());
+                                    moduleNeeded.getRequiredIf(), moduleNeeded.getMavenURIFromConfiguration());
                             componentImportNeeds.setModuleLocaion(moduleNeeded.getModuleLocaion());
                             componentImportNeedsList.add(componentImportNeeds);
                         }

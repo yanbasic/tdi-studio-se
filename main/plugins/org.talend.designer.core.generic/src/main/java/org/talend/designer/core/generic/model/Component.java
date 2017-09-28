@@ -1178,7 +1178,7 @@ public class Component extends AbstractBasicComponent {
 
                 if (bundle != null) { // update module location
                     try {
-                        final MavenArtifact artifact = MavenUrlHelper.parseMvnUrl(moduleNeeded.getMavenUri());
+                        final MavenArtifact artifact = MavenUrlHelper.parseMvnUrl(moduleNeeded.getDefaultMavenURI());
                         final String moduleFileName = artifact.getFileName();
                         final File bundleFile = BundleFileUtil.getBundleFile(bundle, moduleFileName);
                         if (bundleFile != null && bundleFile.exists()) {
