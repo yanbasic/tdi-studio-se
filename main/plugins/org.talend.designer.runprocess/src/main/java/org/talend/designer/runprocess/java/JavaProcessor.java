@@ -1271,6 +1271,16 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             outputPath += classPathSeparator;
             basePath.append(outputPath);
             
+            // add subjobs
+            Set<JobInfo> subjobs = this.getBuildChildrenJobs();
+            for (JobInfo info : subjobs) {
+                ITalendProcessJavaProject subjobPrject = TalendJavaProjectManager.getTalendJobJavaProject(info.getProcessItem().getProperty());
+                IFolder subjobClassesFolder = subjobPrject.getOutputFolder();
+                String subjobOutputPath = subjobClassesFolder.getLocation().toPortableString();
+                subjobOutputPath += classPathSeparator;
+                basePath.append(subjobOutputPath);
+            }
+            
             ITalendProcessJavaProject routineProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
             String routineOutputPath = routineProject.getOutputFolder().getLocation().toPortableString();
             routineOutputPath += classPathSeparator;

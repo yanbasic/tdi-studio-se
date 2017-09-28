@@ -36,6 +36,7 @@ import org.talend.core.model.properties.Property;
 import org.talend.core.model.utils.JavaResourcesHelper;
 import org.talend.core.repository.utils.ItemResourceUtil;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
+import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.runtime.process.TalendProcessArgumentConstant;
 import org.talend.core.runtime.process.TalendProcessOptionConstants;
 import org.talend.core.runtime.repository.build.AbstractBuildProvider;
@@ -280,23 +281,28 @@ public class MavenJavaProcessor extends JavaProcessor {
     public void build(IProgressMonitor monitor) throws Exception {
         final ITalendProcessJavaProject talendJavaProject = getTalendJavaProject();
         // compile with JDT first in order to make the maven packaging work with a JRE.
+        String goal = getGoals();
         boolean isGoalPackage = TalendMavenConstants.GOAL_PACKAGE.equals(getGoals());
         IFile jobJarFile = null;
-        if (isGoalPackage) {
-            String jobJarName = JavaResourcesHelper.getJobJarName(property.getLabel(), property.getVersion())
-                    + FileExtensions.JAR_FILE_SUFFIX;
-            jobJarFile = talendJavaProject.getTargetFolder().getFile(jobJarName);
-            if (jobJarFile != null && jobJarFile.exists()) {
-                jobJarFile.delete(true, null);
-                jobJarFile.refreshLocal(IResource.DEPTH_ONE, null);
+        if (!TalendMavenConstants.GOAL_COMPILE.equals(goal)) {
+            if (isGoalPackage) {
+                String jobJarName = JavaResourcesHelper.getJobJarName(property.getLabel(), property.getVersion())
+                        + FileExtensions.JAR_FILE_SUFFIX;
+                jobJarFile = talendJavaProject.getTargetFolder().getFile(jobJarName);
+                if (jobJarFile != null && jobJarFile.exists()) {
+                    jobJarFile.delete(true, null);
+                    jobJarFile.refreshLocal(IResource.DEPTH_ONE, null);
+                }
             }
             talendJavaProject.buildModules(monitor, null, null);
         }
 
         final Map<String, Object> argumentsMap = new HashMap<>();
-        argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, getGoals());
-        argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-Dmaven.main.skip=true -P !" //$NON-NLS-1$
-                + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY);
+        argumentsMap.put(TalendProcessArgumentConstant.ARG_GOAL, goal);
+        if (isGoalPackage) {
+            argumentsMap.put(TalendProcessArgumentConstant.ARG_PROGRAM_ARGUMENTS, "-Dmaven.main.skip=true -P !" //$NON-NLS-1$
+                    + TalendMavenConstants.PROFILE_PACKAGING_AND_ASSEMBLY);
+        }
         talendJavaProject.buildModules(monitor, null, argumentsMap);
         if (isGoalPackage) {
             if (jobJarFile != null) {
@@ -312,13 +318,22 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (isTestJob) {
             return TalendMavenConstants.GOAL_TEST_COMPILE;
         }
-
-        if (!ProcessorUtilities.isExportConfig() && requirePackaging()) {
-            // We return the PACKAGE goal if the main job and/or one of its recursive job is a Big Data job.
-            return TalendMavenConstants.GOAL_PACKAGE;
-        } else {
-            // Else, a simple compilation is needed.
-            return TalendMavenConstants.GOAL_COMPILE;
+        
+        boolean isMainJob = LastGenerationInfo.getInstance().isCurrentMainJob();
+        boolean requirePackaging = requirePackaging();
+        if (!isExportConfig()) {
+            if (requirePackaging) {
+                // We return the PACKAGE goal if the main job and/or one of its recursive job is a Big Data job.
+                return TalendMavenConstants.GOAL_PACKAGE;
+            }
         }
+        if (isExportConfig()) {
+            if (!isMainJob) {
+                // export and subjob
+                return TalendMavenConstants.GOAL_INSTALL;
+            }
+        }
+        // Else, a simple compilation is needed.
+        return TalendMavenConstants.GOAL_COMPILE;
     }
 }

@@ -171,8 +171,8 @@
 			<properties>
 				<talend.libraries.excludes.set>${talend.libraries.includes.set}</talend.libraries.excludes.set>
         		<talend.jobs.excludes.set>${project.groupId}:*</talend.jobs.excludes.set>
-				<talend.code.excludes.set>org.talend.code.testbd:*</talend.code.excludes.set>
-				<talend.pigudf.excludes.set>org.talend.pigudf.testbd:*</talend.pigudf.excludes.set>
+				<talend.code.excludes.set>org.talend.code.${talend.project.name.lowercase}:*</talend.code.excludes.set>
+				<talend.pigudf.excludes.set>org.talend.pigudf.${talend.project.name.lowercase}:*</talend.pigudf.excludes.set>
 		        <talend.libraries.includes.set>org.talend.libraries:*</talend.libraries.includes.set>
 		        <current.job.binaries.include>${project.groupId}:${project.artifactId}:${project.version}</current.job.binaries.include>
 			</properties>

@@ -157,8 +157,13 @@ public class TalendJavaSourceViewer extends ReconcilerViewer {
         try {
 
             IRunProcessService runProcessService = getRunProcessService();
+            ITalendProcessJavaProject talendProcessJavaProject = null;
             if (runProcessService != null) {
-                ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendJobJavaProject(process.getProperty());
+                if (process != null) {
+                    talendProcessJavaProject = runProcessService.getTalendJobJavaProject(process.getProperty());
+                } else {
+                    talendProcessJavaProject = runProcessService.getTempJavaProject();
+                }
                 if (talendProcessJavaProject == null) {
                     return;
                 }
@@ -552,8 +557,13 @@ public class TalendJavaSourceViewer extends ReconcilerViewer {
         InputStream codeStream = new ByteArrayInputStream(getDocument().get().getBytes());
         try {
             IRunProcessService runProcessService = getRunProcessService();
-            if (file == null && runProcessService != null && process != null) {
-                ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendJobJavaProject(process.getProperty());
+            if (file == null && runProcessService != null) {
+                ITalendProcessJavaProject talendProcessJavaProject = null;
+                if (process != null) {
+                    talendProcessJavaProject = runProcessService.getTalendJobJavaProject(process.getProperty());
+                } else {
+                    talendProcessJavaProject = runProcessService.getTempJavaProject();
+                }
                 if (talendProcessJavaProject == null) {
                     return;
                 }

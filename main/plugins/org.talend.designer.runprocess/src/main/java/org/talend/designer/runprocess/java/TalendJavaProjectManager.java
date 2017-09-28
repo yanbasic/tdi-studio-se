@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.CommonUIPlugin;
+import org.talend.commons.utils.generation.JavaUtils;
 import org.talend.commons.utils.workbench.resources.ResourceUtils;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.general.Project;
@@ -253,6 +254,7 @@ public class TalendJavaProjectManager {
                         javaProject.open(new NullProgressMonitor());
                     }
                     tempJavaProject = new TalendProcessJavaProject(javaProject);
+                    tempJavaProject.createSubFolder(null, tempJavaProject.getSrcFolder(), JavaUtils.JAVA_INTERNAL_DIRECTORY);
                 }
             } catch (Exception e) {
                 ExceptionHandler.process(e);

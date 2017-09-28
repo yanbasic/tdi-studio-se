@@ -15,6 +15,7 @@ package org.talend.designer.runprocess.bigdata;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -23,28 +24,36 @@ import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.talend.commons.exception.CommonExceptionHandler;
+import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.generation.JavaUtils;
 import org.talend.commons.utils.resource.FileExtensions;
 import org.talend.core.model.general.ModuleNeeded;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
+import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
+import org.talend.core.model.repository.ERepositoryObjectType;
+import org.talend.core.runtime.process.ITalendProcessJavaProject;
+import org.talend.core.runtime.process.TalendProcessArgumentConstant;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
+import org.talend.designer.maven.model.TalendMavenConstants;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
 import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ProcessorConstants;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessorUtilities;
+import org.talend.designer.runprocess.java.TalendJavaProjectManager;
 import org.talend.designer.runprocess.maven.MavenJavaProcessor;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager.ExportChoice;
-import org.talend.utils.files.FileUtils;
-import org.talend.utils.files.FilterInfo;
 
 public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
 
@@ -191,9 +200,8 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
                 libNames = JavaProcessorUtilities.extractLibNamesOnlyForMapperAndReducerWithoutRoutines((IProcess2) process);
             }
         }
-
+        //TODO for run job, remove? or there are extra jars in lib than m2?
         File libDir = JavaProcessorUtilities.getJavaProjectLibFolder();
-        File targetDir = new File(getTalendJavaProject().getTargetFolder().getLocationURI());
 
         String libFolder = ""; //$NON-NLS-1$
         if (libDir != null) {
@@ -218,37 +226,80 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
             // In an export mode, we add the job jar which is located in the current working directory
             libJars.append("./" + makeupJobJarName()); //$NON-NLS-1$
         } else {
-            // In a local mode,we must append the routines/beans/udfs jars which are located in the target directory.
-            Set<FilterInfo> codeJars = new HashSet<>();
-            codeJars.add(new FilterInfo(JavaUtils.ROUTINE_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
-            codeJars.add(new FilterInfo(JavaUtils.BEANS_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
-            codeJars.add(new FilterInfo(JavaUtils.PIGUDFS_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
-
-            List<File> files = FileUtils.getAllFilesFromFolder(targetDir, codeJars);
-            boolean routinesHaveBeenFound = false;
-            for (File f : files) {
-                // TODO routines??
-                if (!routinesHaveBeenFound && f.getName().startsWith(JavaUtils.ROUTINE_JAR_NAME)) {
-                    routinesHaveBeenFound = true;
+            Map<String, Object> argumentsMap1 = new HashMap<>();
+            argumentsMap1.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_COMPILE);
+            Map<String, Object> argumentsMap2 = new HashMap<>();
+            argumentsMap2.put(TalendProcessArgumentConstant.ARG_GOAL, TalendMavenConstants.GOAL_PACKAGE);
+            IProgressMonitor monitor = new NullProgressMonitor();
+            //check routine
+            ITalendProcessJavaProject routineProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
+            IFile routinesJar = routineProject.getTargetFolder().getFile(JavaUtils.ROUTINE_JAR_NAME + "-" + PomUtil.getDefaultMavenVersion() + FileExtensions.JAR_FILE_SUFFIX); //$NON-NLS-1$
+            if (!routinesJar.exists()) { //FIXME should check if routine project out of sync
+                try {
+                    routineProject.buildModules(monitor, null, argumentsMap1);
+                    routineProject.buildModules(monitor, null, argumentsMap2);
+                } catch (Exception e) {
+                    ExceptionHandler.process(e);
                 }
-                libJars.append(new Path(f.getAbsolutePath()).toPortableString() + ","); //$NON-NLS-1$
             }
+            libJars.append(routinesJar.getLocation().toPortableString() + ","); //$NON-NLS-1$
+            // check pigudfs
+            if (ProcessUtils.isRequiredPigUDFs(process)) {
+                ITalendProcessJavaProject pigudfProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.PIG_UDF);
+                IFile pigudfsJar = routineProject.getTargetFolder().getFile(JavaUtils.PIGUDFS_JAR_NAME + "-" + PomUtil.getDefaultMavenVersion() + FileExtensions.JAR_FILE_SUFFIX); //$NON-NLS-1$
+                if (!pigudfsJar.exists()) { //FIXME
+                    try {
+                        pigudfProject.buildModules(monitor, null, argumentsMap1);
+                        pigudfProject.buildModules(monitor, null, argumentsMap2);
+                    } catch (Exception e) {
+                        ExceptionHandler.process(e);
+                    }
+                }
+                libJars.append(pigudfsJar.getLocation().toPortableString() + ","); //$NON-NLS-1$
+            }
+            // check beans
+            if (ProcessUtils.isRequiredBeans(process)) {
+                ITalendProcessJavaProject beansProject = TalendJavaProjectManager.getTalendCodeJavaProject(ERepositoryObjectType.valueOf("BEANS")); //$NON-NLS-1$
+                IFile beansJar = routineProject.getTargetFolder().getFile(JavaUtils.PIGUDFS_JAR_NAME + "-" + PomUtil.getDefaultMavenVersion() + FileExtensions.JAR_FILE_SUFFIX); //$NON-NLS-1$
+                if (!beansJar.exists()) { //FIXME
+                    try {
+                        beansProject.buildModules(monitor, null, argumentsMap1);
+                        beansProject.buildModules(monitor, null, argumentsMap2);
+                    } catch (Exception e) {
+                        ExceptionHandler.process(e);
+                    }
+                }
+                libJars.append(beansJar.getLocation().toPortableString() + ","); //$NON-NLS-1$
+            }
+            
+            // ... and add the jar of the job itself also located in the target directory/
+            libJars.append(getTalendJavaProject().getTargetFolder().getLocation().toPortableString() + "/" + makeupJobJarName()); //$NON-NLS-1$
+            
+            
+            // In a local mode,we must append the routines/beans/udfs jars which are located in the target directory.
+//            Set<FilterInfo> codeJars = new HashSet<>();
+//            codeJars.add(new FilterInfo(JavaUtils.ROUTINE_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
+//            codeJars.add(new FilterInfo(JavaUtils.BEANS_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
+//            codeJars.add(new FilterInfo(JavaUtils.PIGUDFS_JAR_NAME, FileExtensions.JAR_FILE_SUFFIX));
+//            
+//            List<File> files = FileUtils.getAllFilesFromFolder(targetDir, codeJars);
+//            boolean routinesHaveBeenFound = false;
+//            for (File f : files) {
+//                if (!routinesHaveBeenFound && f.getName().startsWith(JavaUtils.ROUTINE_JAR_NAME)) {
+//                    routinesHaveBeenFound = true;
+//                }
+//                libJars.append(new Path(f.getAbsolutePath()).toPortableString() + ","); //$NON-NLS-1$
+//            }
             // If routines are not found, try to guess their future location. This case happens when the target folder
             // is clean and when a DI job tRunJob is asking for the child bigdata command line at generation time, while
             // the routines have
             // not been built yet. Nevertheless, we make the assumption that they are going to be located in the target
             // folder when the job is going to be running.
-            if (!routinesHaveBeenFound) {
-                File routinesJar = new File(targetDir + "/" + JavaUtils.ROUTINE_JAR_NAME + "-" + PomUtil.getDefaultMavenVersion() //$NON-NLS-1$ //$NON-NLS-2$
-                        + FileExtensions.JAR_FILE_SUFFIX);
-                libJars.append(new Path(routinesJar.getAbsolutePath()).toPortableString() + ","); //$NON-NLS-1$
-            }
-
-            // ... and add the jar of the job itself also located in the target directory/
-            if (targetDir != null) {
-                libJars.append(new Path(targetDir.getAbsolutePath()).toPortableString() + "/" + makeupJobJarName()); //$NON-NLS-1$
-            }
-
+//            if (!routinesHaveBeenFound) {
+//                File routinesJar = new File(targetDir + "/" + JavaUtils.ROUTINE_JAR_NAME + "-" + PomUtil.getDefaultMavenVersion() //$NON-NLS-1$ //$NON-NLS-2$
+//                        + FileExtensions.JAR_FILE_SUFFIX);
+//                libJars.append(new Path(routinesJar.getAbsolutePath()).toPortableString() + ","); //$NON-NLS-1$
+//            }
         }
         list.add(libJars.toString());
         return list;
