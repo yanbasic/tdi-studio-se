@@ -623,10 +623,12 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     newReferenceSetting);
             IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
 
+                final String mainProjectLabel = ProjectManager.getInstance().getCurrentProject().getTechnicalLabel();
+
                 @Override
                 public void run(IProgressMonitor monitor) throws CoreException {
                     try {
-                        relogin(monitor);
+                        relogin(mainProjectLabel, monitor);
                         saveData();
                     } catch (Exception ex) {
                         errorException = ex;
@@ -634,7 +636,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                         // If failed, try to roll back
                         ReferenceProjectProvider.removeAllTempReferenceList();
                         try {
-                            relogin(monitor);
+                            relogin(mainProjectLabel, monitor);
                         } catch (Exception e) {
                             ExceptionHandler.process(e);
                             log.error("Roll back reference project settings failed:" + e); //$NON-NLS-1$
@@ -784,8 +786,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(repositoryWorkUnit);
     }
 
-    private void relogin(IProgressMonitor monitor) throws PersistenceException, BusinessException {
-        Project currentProject = ProjectManager.getInstance().getCurrentProject();
+    private void relogin(String mainProjectLabel, IProgressMonitor monitor) throws PersistenceException, BusinessException {
         monitor.beginTask(Messages.getString("RepoReferenceProjectSetupAction.TaskRelogin"), 10); //$NON-NLS-1$
         monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogoff")); //$NON-NLS-1$
         ProxyRepositoryFactory.getInstance().logOffProject();
@@ -794,7 +795,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         Project switchProject = null;
         projects = ProxyRepositoryFactory.getInstance().readProject();
         for (Project p : projects) {
-            if (p.getTechnicalLabel().equals(currentProject.getTechnicalLabel())) {
+            if (p.getTechnicalLabel().equals(mainProjectLabel)) {
                 switchProject = p;
                 break;
             }
