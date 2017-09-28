@@ -618,9 +618,6 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                     Messages.getString("RepoReferenceProjectSetupAction.MsgReferenceChanged")); //$NON-NLS-1$
             // Apply new setting
             errorException = null;
-            List<ProjectReference> newReferenceSetting = convertToProjectReference(viewerInput);
-            ReferenceProjectProvider.setTempReferenceList(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel(),
-                    newReferenceSetting);
             IWorkspaceRunnable workspaceRunnable = new IWorkspaceRunnable() {
 
                 final String mainProjectLabel = ProjectManager.getInstance().getCurrentProject().getTechnicalLabel();
@@ -628,15 +625,14 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 @Override
                 public void run(IProgressMonitor monitor) throws CoreException {
                     try {
-                        relogin(mainProjectLabel, monitor);
+                        relogin(mainProjectLabel, false, monitor);
                         saveData();
                     } catch (Exception ex) {
                         errorException = ex;
                         synSetErrorMessage(errorException);
                         // If failed, try to roll back
-                        ReferenceProjectProvider.removeAllTempReferenceList();
                         try {
-                            relogin(mainProjectLabel, monitor);
+                            relogin(mainProjectLabel, true, monitor);
                         } catch (Exception e) {
                             ExceptionHandler.process(e);
                             log.error("Roll back reference project settings failed:" + e); //$NON-NLS-1$
@@ -786,7 +782,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
         ProxyRepositoryFactory.getInstance().executeRepositoryWorkUnit(repositoryWorkUnit);
     }
 
-    private void relogin(String mainProjectLabel, IProgressMonitor monitor) throws PersistenceException, BusinessException {
+    private void relogin(String mainProjectLabel, boolean isRollback, IProgressMonitor monitor)
+            throws PersistenceException, BusinessException {
         monitor.beginTask(Messages.getString("RepoReferenceProjectSetupAction.TaskRelogin"), 10); //$NON-NLS-1$
         monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogoff")); //$NON-NLS-1$
         ProxyRepositoryFactory.getInstance().logOffProject();
@@ -799,6 +796,13 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 switchProject = p;
                 break;
             }
+        }
+        if (isRollback) {
+            ReferenceProjectProvider.removeAllTempReferenceList();
+        } else {
+            List<ProjectReference> newReferenceSetting = convertToProjectReference(viewerInput);
+            ReferenceProjectProvider.setTempReferenceList(ProjectManager.getInstance().getCurrentProject().getTechnicalLabel(),
+                    newReferenceSetting);
         }
         monitor.subTask(Messages.getString("RepoReferenceProjectSetupAction.TaskLogon", switchProject.getLabel())); //$NON-NLS-1$
         ProxyRepositoryFactory.getInstance().logOnProject(switchProject, monitor);
