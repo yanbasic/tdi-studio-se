@@ -49,7 +49,7 @@ import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
-import org.talend.repository.ui.wizards.exportjob.scriptsmanager.BuildJobManager;
+import org.talend.repository.i18n.Messages;
 
 /**
  * created by ggu on 2 Feb 2015 Detailled comment
@@ -309,7 +309,8 @@ public class MavenJavaProcessor extends JavaProcessor {
                 jobJarFile.refreshLocal(IResource.DEPTH_ONE, null);
             }
             if (jobJarFile == null || !jobJarFile.exists()) {
-                throw new Exception(BuildJobManager.MAVEN_ERROR_MSG);
+                String mvnLogFilePath = talendJavaProject.getProject().getFile("lastGenerated.log").getLocation().toPortableString(); //$NON-NLS-1$
+                throw new Exception(Messages.getString("BuildJobManager.mavenErrorMessage", mvnLogFilePath)); //$NON-NLS-1$
             }
         }
     }

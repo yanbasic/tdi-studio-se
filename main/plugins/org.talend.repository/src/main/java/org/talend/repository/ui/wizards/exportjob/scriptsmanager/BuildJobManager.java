@@ -36,6 +36,7 @@ import org.talend.commons.CommonsPlugin;
 import org.talend.commons.exception.PersistenceException;
 import org.talend.commons.utils.time.TimeMeasure;
 import org.talend.core.CorePlugin;
+import org.talend.core.GlobalServiceRegister;
 import org.talend.core.model.process.JobInfo;
 import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.properties.ProcessItem;
@@ -43,8 +44,10 @@ import org.talend.core.model.relationship.RelationshipItemBuilder;
 import org.talend.core.model.repository.IRepositoryPrefConstants;
 import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.runtime.process.IBuildJobHandler;
+import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.ui.CoreUIPlugin;
 import org.talend.core.ui.services.IDesignerCoreUIService;
+import org.talend.designer.runprocess.IRunProcessService;
 import org.talend.designer.runprocess.ItemCacheManager;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.repository.ProjectManager;
@@ -66,8 +69,6 @@ public class BuildJobManager {
 
     private static BuildJobManager instance = null;
     
-    public final static String MAVEN_ERROR_MSG = Messages.getString("BuildJobManager.mavenErrorMessage"); //$NON-NLS-1$
-
     private BuildJobManager() {
     }
 
@@ -274,7 +275,9 @@ public class BuildJobManager {
                 FilesUtils.copyFile(jobZipFile, jobFileTarget);
                 TimeMeasure.step(timeMeasureId, "Copy packaged file to target");
             } else {
-                throw new Exception(MAVEN_ERROR_MSG);
+                ITalendProcessJavaProject talendJavaProject = getRunProcessService().getTalendJobJavaProject(processItem.getProperty());
+                String mvnLogFilePath = talendJavaProject.getProject().getFile("lastGenerated.log").getLocation().toPortableString(); //$NON-NLS-1$
+                throw new Exception(Messages.getString("BuildJobManager.mavenErrorMessage", mvnLogFilePath)); //$NON-NLS-1$
             }
             if (checkCompilationError) {
                 CorePlugin.getDefault().getRunProcessService().checkLastGenerationHasCompilationError(false);
@@ -302,6 +305,14 @@ public class BuildJobManager {
             addClasspathJar = designerCoreUIService.getPreferenceStore().getBoolean(IRepositoryPrefConstants.ADD_CLASSPATH_JAR);
         }
         return addClasspathJar;
+    }
+    
+    private IRunProcessService getRunProcessService() {
+        IRunProcessService service = null;
+        if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
+            service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
+        }
+        return service;
     }
 
 }
