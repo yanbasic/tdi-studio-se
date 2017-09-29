@@ -27,7 +27,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -86,7 +85,6 @@ import org.talend.core.services.ISVNProviderService;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.ReferenceProjectProblemManager;
 import org.talend.repository.ReferenceProjectProvider;
-import org.talend.repository.RepositoryViewPlugin;
 import org.talend.repository.RepositoryWorkUnit;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.IRepositoryService;
@@ -669,7 +667,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
     }
 
     private boolean checkOtherEditorsOpened() {
-        IWorkbenchWindow workBench = PlatformUI.getWorkbench().getActiveWorkbenchWindow();// .getActivePage().getEditorReferences();
+        IWorkbenchWindow workBench = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (workBench != null) {
             IWorkbenchPage page = workBench.getActivePage();
             IEditorReference[] editors = page.getEditorReferences();
@@ -767,6 +765,7 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
                 try {
                     ProjectManager.getInstance().getCurrentProject()
                             .saveProjectReferenceList(convertToProjectReference(viewerInput));
+                    ReferenceProjectProvider.removeAllTempReferenceList();
                 } catch (Exception e) {
                     errorException = e;
                     String errorMessage = Messages.getString("ReferenceProjectSetupPage.ErrorSaveReferenceSettingFailed", //$NON-NLS-1$
