@@ -34,15 +34,15 @@ import com.microsoft.aad.adal4j.AuthenticationResult;
 public class OAuthStrategyImpl implements IAuthStrategy {
 
     private ClientConfiguration conf;
+
     private AuthenticationResult authResult;
-    
 
     private IHttpclientFactoryObservable httpClientFactory;
 
-    OAuthStrategyImpl(ClientConfiguration conf)  {
+    OAuthStrategyImpl(ClientConfiguration conf) {
         this.conf = conf;
     }
-    
+
     public void init() throws AuthenticationException {
         try {
             authResult = getAccessToken();
@@ -65,26 +65,24 @@ public class OAuthStrategyImpl implements IAuthStrategy {
         return httpClientFactory;
 
     }
-    
 
     public void configureRequest(ODataRequest request) {
         request.addCustomHeader(HttpHeader.AUTHORIZATION, "Bearer " + authResult.getAccessToken());
     }
-    
+
     public void configureRequest(HttpRequestBase request) {
         request.addHeader(HttpHeader.AUTHORIZATION, "Bearer " + authResult.getAccessToken());
     }
 
+    public void refreshAuth() throws AuthenticationException {
 
-    public void refreshAuth()  throws AuthenticationException {
-        
         try {
             this.refreshToken();
         } catch (ServiceUnavailableException e) {
             throw new AuthenticationException(e.getMessage());
         }
     }
-    
+
     /**
      * Refresh token when expired
      */
@@ -110,7 +108,7 @@ public class OAuthStrategyImpl implements IAuthStrategy {
 
         }
     }
-    
+
     private AuthenticationResult getAccessToken() throws ServiceUnavailableException {
         AuthenticationContext context = null;
         AuthenticationResult result = null;

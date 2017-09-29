@@ -20,5 +20,5 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public interface IHttpClientFactoryObserver {
 
     public void httpClientCreated(DefaultHttpClientState httpclient);
-    
+
 }

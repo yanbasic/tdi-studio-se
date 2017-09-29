@@ -21,24 +21,26 @@ import org.talend.ms.crm.odata.ClientConfiguration.AuthStrategyEnum;
  */
 public class ClientConfigurationFactory {
 
-    public final static ClientConfiguration buildOAuthClientConfiguration(String clientId, String userName, String password, String authoryEndpoint){
+    public final static ClientConfiguration buildOAuthClientConfiguration(String clientId, String userName, String password,
+            String authoryEndpoint) {
         ClientConfiguration clientConfiguration = new ClientConfiguration(AuthStrategyEnum.OAUTH);
         clientConfiguration.setClientId(clientId);
         clientConfiguration.setUserName(userName);
         clientConfiguration.setPassword(password);
         clientConfiguration.setAuthoryEndpoint(authoryEndpoint);
-        
+
         return clientConfiguration;
     }
-    
-    public final static ClientConfiguration buildNtlmClientConfiguration(String userName, String password, String workstation, String domain){
+
+    public final static ClientConfiguration buildNtlmClientConfiguration(String userName, String password, String workstation,
+            String domain) {
         ClientConfiguration clientConfiguration = new ClientConfiguration(AuthStrategyEnum.NTLM);
         clientConfiguration.setUserName(userName);
         clientConfiguration.setPassword(password);
         clientConfiguration.setWorkstation(workstation);
         clientConfiguration.setDomain(domain);
-        
+
         return clientConfiguration;
     }
-    
+
 }

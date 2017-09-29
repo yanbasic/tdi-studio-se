@@ -21,24 +21,25 @@ import org.apache.http.impl.client.DefaultHttpClient;
  * It allows DynamicsCRMClient to retrieve DefaultHttpClient and expire them setting needNewHttpClient to true.
  */
 public class DefaultHttpClientState {
-    
+
     private AtomicBoolean needNewHttpClient = new AtomicBoolean(false);
+
     private final DefaultHttpClient httpClient;
-    
+
     public DefaultHttpClientState(DefaultHttpClient httpClient) {
         this.httpClient = httpClient;
     }
-    
+
     public void setNeedNewHttpClient(boolean b) {
         needNewHttpClient.set(b);
     }
-    
-    public boolean needNewHttpClient(){
+
+    public boolean needNewHttpClient() {
         return needNewHttpClient.get();
     }
-    
-    public DefaultHttpClient  getHttpClient() {
+
+    public DefaultHttpClient getHttpClient() {
         return this.httpClient;
     }
-    
+
 }

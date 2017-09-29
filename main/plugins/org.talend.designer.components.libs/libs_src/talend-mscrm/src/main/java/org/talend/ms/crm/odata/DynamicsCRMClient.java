@@ -87,6 +87,7 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
     private DefaultHttpClientState httpClientState;
 
     private IHttpclientFactoryObservable httpClientFactory;
+
     private IAuthStrategy authStrategy;
 
     private String entitySet;
@@ -112,26 +113,27 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
 
         authStrategy = AuthStrategyFactory.createAuthStrategy(this.clientConfiguration);
         authStrategy.init();
-        
+
         httpClientFactory = authStrategy.getHttpClientFactory();
         httpClientFactory.addListener(this);
-        
-        odataClient.getConfiguration().setHttpClientFactory((DefaultHttpClientFactory)httpClientFactory);
 
-        ((DefaultHttpClientFactory)httpClientFactory).create(null, null);
+        odataClient.getConfiguration().setHttpClientFactory((DefaultHttpClientFactory) httpClientFactory);
+
+        ((DefaultHttpClientFactory) httpClientFactory).create(null, null);
 
     }
 
     public void httpClientCreated(DefaultHttpClientState httpClientState) {
         this.httpClientState = httpClientState;
-        
-        HttpConnectionParams.setConnectionTimeout(httpClientState.getHttpClient().getParams(), clientConfiguration.getTimeout() * 1000);
+
+        HttpConnectionParams.setConnectionTimeout(httpClientState.getHttpClient().getParams(),
+                clientConfiguration.getTimeout() * 1000);
         HttpConnectionParams.setSoTimeout(httpClientState.getHttpClient().getParams(), clientConfiguration.getTimeout() * 1000);
 
         // setup proxy
         setHttpclientProxy(httpClientState.getHttpClient());
     }
-    
+
     public ODataClient getClient() {
         return odataClient;
     }
@@ -161,7 +163,7 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
                 .getEntitySetRequest(uriBuilder.build());
 
         this.authStrategy.configureRequest(request);
-        
+
         return request;
     }
 
@@ -258,7 +260,7 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
         ODataEntitySetIteratorRequest<ClientEntitySet, ClientEntity> request = odataClient.getRetrieveRequestFactory()
                 .getEntitySetIteratorRequest(uriBuilder.build());
         this.authStrategy.configureRequest(request);
-        
+
         ODataRetrieveResponse<ClientEntitySetIterator<ClientEntitySet, ClientEntity>> response = request.execute();
         try {
             ClientEntitySetIterator<ClientEntitySet, ClientEntity> entitySetIterator = response.getBody();
@@ -348,11 +350,11 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
 
     protected HttpResponse createAndExecuteRequest(URI uri, HttpEntity httpEntity, HttpMethod method)
             throws ServiceUnavailableException {
-        
+
         boolean hasRetried = false;
         while (true) {
             try {
-                ((DefaultHttpClientFactory)httpClientFactory).create(null, null);
+                ((DefaultHttpClientFactory) httpClientFactory).create(null, null);
                 HttpRequestBase request = null;
                 if (method == HttpMethod.POST) {
                     request = new HttpPost(uri);
@@ -364,7 +366,7 @@ public class DynamicsCRMClient implements IHttpClientFactoryObserver {
                     throw new HttpClientException("Unsupported operation:" + method);
                 }
                 this.authStrategy.configureRequest(request);
-                
+
                 if (request instanceof HttpEntityEnclosingRequestBase) {
                     ((HttpEntityEnclosingRequestBase) request).setEntity(httpEntity);
                 }

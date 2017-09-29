@@ -23,32 +23,35 @@ import org.apache.olingo.commons.api.http.HttpMethod;
 import org.talend.ms.crm.odata.ClientConfiguration;
 
 public class OAuthHttpClientFactory extends DefaultHttpClientFactory implements IHttpclientFactoryObservable {
-    
+
     private DefaultHttpClientState defaultHttpClientState;
+
     private ClientConfiguration clientConfiguration;
+
     List<IHttpClientFactoryObserver> listeners = new ArrayList<IHttpClientFactoryObserver>();
-    
+
     public OAuthHttpClientFactory(ClientConfiguration conf) {
         super();
         this.clientConfiguration = conf;
     }
-    
-    public final void addListener(IHttpClientFactoryObserver l){
+
+    public final void addListener(IHttpClientFactoryObserver l) {
         this.listeners.add(l);
     }
-    
+
     /**
      * Must be called each time a new HttpClient is created by the returned HttpClientFactory.
      */
-    protected final void fireHttpClientCreated(DefaultHttpClientState defaultHttpClientState){
-        for(IHttpClientFactoryObserver l : listeners){
+    protected final void fireHttpClientCreated(DefaultHttpClientState defaultHttpClientState) {
+        for (IHttpClientFactoryObserver l : listeners) {
             l.httpClientCreated(defaultHttpClientState);
         }
     }
 
     @Override
     public DefaultHttpClient create(final HttpMethod method, final URI uri) {
-        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null || defaultHttpClientState.needNewHttpClient()) {
+        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null
+                || defaultHttpClientState.needNewHttpClient()) {
             DefaultHttpClient httpClient = super.create(method, uri);
 
             HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);
@@ -59,5 +62,5 @@ public class OAuthHttpClientFactory extends DefaultHttpClientFactory implements 
         }
         return defaultHttpClientState.getHttpClient();
     }
-    
+
 }

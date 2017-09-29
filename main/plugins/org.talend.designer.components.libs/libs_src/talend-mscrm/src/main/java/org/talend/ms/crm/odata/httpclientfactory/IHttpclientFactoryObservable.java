@@ -19,7 +19,7 @@ import java.util.List;
  * The observer pattern is used to allows DynamicsCRMClient to retrieve and expire http client.
  */
 public interface IHttpclientFactoryObservable {
-    
+
     public void addListener(IHttpClientFactoryObserver l);
-    
+
 }

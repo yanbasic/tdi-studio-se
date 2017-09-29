@@ -22,22 +22,26 @@ import java.net.SocketAddress;
  * No need to use singleton pattern since no implementation/extends, static is enough.
  */
 public final class ProxyProvider {
-    
+
     private final static String proxyHost = System.getProperty("https.proxyHost");
+
     private final static String proxyPort = System.getProperty("https.proxyPort");
+
     private final static String proxyUserName = System.getProperty("https.proxyUser");
+
     private final static String proxyUserPassword = System.getProperty("https.proxyPassword");
-    
-    private ProxyProvider(){}
-    
+
+    private ProxyProvider() {
+    }
+
     public static String getProxyUserName() {
         return proxyUserName;
     }
-    
+
     public static String getProxyUserPassword() {
         return proxyUserPassword;
     }
-    
+
     /**
      * Get the proxy setting if there is proxy for system
      */

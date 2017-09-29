@@ -25,12 +25,14 @@ import org.talend.ms.crm.odata.ClientConfiguration;
 public class NTLMHttpClientFactory extends NTLMAuthHttpClientFactory implements IHttpclientFactoryObservable {
 
     private ClientConfiguration clientConfiguration;
+
     private DefaultHttpClientState defaultHttpClientState;
+
     private List<IHttpClientFactoryObserver> listeners = new ArrayList<IHttpClientFactoryObserver>();
-    
+
     public NTLMHttpClientFactory(ClientConfiguration conf) {
         super(conf.getUserName(), conf.getPassword(), conf.getWorkstation(), conf.getDomain());
-        
+
         this.clientConfiguration = conf;
     }
 
@@ -49,7 +51,8 @@ public class NTLMHttpClientFactory extends NTLMAuthHttpClientFactory implements 
 
     @Override
     public DefaultHttpClient create(final HttpMethod method, final URI uri) {
-        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null || defaultHttpClientState.needNewHttpClient()) {
+        if (!clientConfiguration.isReuseHttpClient() || defaultHttpClientState == null
+                || defaultHttpClientState.needNewHttpClient()) {
             DefaultHttpClient httpClient = super.create(method, uri);
 
             HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), clientConfiguration.getTimeout() * 1000);

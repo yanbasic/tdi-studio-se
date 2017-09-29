@@ -20,16 +20,17 @@ import org.talend.ms.crm.odata.ClientConfiguration;
 import org.talend.ms.crm.odata.httpclientfactory.IHttpclientFactoryObservable;
 import org.talend.ms.crm.odata.httpclientfactory.NTLMHttpClientFactory;
 
-public class NTLMStrategyImpl implements IAuthStrategy{
+public class NTLMStrategyImpl implements IAuthStrategy {
 
     private ClientConfiguration conf;
+
     private IHttpclientFactoryObservable httpClientFactory;
-    
+
     NTLMStrategyImpl(ClientConfiguration conf) {
         this.conf = conf;
     }
 
-    public IHttpclientFactoryObservable getHttpClientFactory() throws AuthenticationException{
+    public IHttpclientFactoryObservable getHttpClientFactory() throws AuthenticationException {
         if (httpClientFactory == null) {
             httpClientFactory = new NTLMHttpClientFactory(this.conf);
         }
@@ -37,7 +38,7 @@ public class NTLMStrategyImpl implements IAuthStrategy{
         return httpClientFactory;
     }
 
-    public void refreshAuth() throws AuthenticationException{
+    public void refreshAuth() throws AuthenticationException {
         // Nothing to do
     }
 
@@ -52,5 +53,5 @@ public class NTLMStrategyImpl implements IAuthStrategy{
     public void configureRequest(HttpRequestBase request) {
         // Nothing to do
     }
-    
+
 }

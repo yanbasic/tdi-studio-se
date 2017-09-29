@@ -75,7 +75,7 @@ public final class ClientConfiguration {
         this.authStrategy = authStrategy;
     }
 
-      public String getClientId() {
+    public String getClientId() {
         return clientId;
     }
 
