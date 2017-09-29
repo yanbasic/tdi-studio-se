@@ -43,6 +43,7 @@ public class OAuthStrategyImpl implements IAuthStrategy {
         this.conf = conf;
     }
 
+    @Override
     public void init() throws AuthenticationException {
         try {
             authResult = getAccessToken();
@@ -51,6 +52,7 @@ public class OAuthStrategyImpl implements IAuthStrategy {
         }
     }
 
+    @Override
     public IHttpclientFactoryObservable getHttpClientFactory() throws AuthenticationException {
         try {
             authResult = getAccessToken();
@@ -66,14 +68,17 @@ public class OAuthStrategyImpl implements IAuthStrategy {
 
     }
 
+    @Override
     public void configureRequest(ODataRequest request) {
         request.addCustomHeader(HttpHeader.AUTHORIZATION, "Bearer " + authResult.getAccessToken());
     }
 
+    @Override
     public void configureRequest(HttpRequestBase request) {
         request.addHeader(HttpHeader.AUTHORIZATION, "Bearer " + authResult.getAccessToken());
     }
 
+    @Override
     public void refreshAuth() throws AuthenticationException {
 
         try {

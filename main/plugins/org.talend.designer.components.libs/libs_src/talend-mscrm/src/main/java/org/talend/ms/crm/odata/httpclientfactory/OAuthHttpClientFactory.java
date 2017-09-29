@@ -35,6 +35,7 @@ public class OAuthHttpClientFactory extends DefaultHttpClientFactory implements 
         this.clientConfiguration = conf;
     }
 
+    @Override
     public final void addListener(IHttpClientFactoryObserver l) {
         this.listeners.add(l);
     }

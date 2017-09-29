@@ -30,6 +30,7 @@ public class NTLMStrategyImpl implements IAuthStrategy {
         this.conf = conf;
     }
 
+    @Override
     public IHttpclientFactoryObservable getHttpClientFactory() throws AuthenticationException {
         if (httpClientFactory == null) {
             httpClientFactory = new NTLMHttpClientFactory(this.conf);
@@ -38,18 +39,22 @@ public class NTLMStrategyImpl implements IAuthStrategy {
         return httpClientFactory;
     }
 
+    @Override
     public void refreshAuth() throws AuthenticationException {
         // Nothing to do
     }
 
+    @Override
     public void init() throws AuthenticationException {
         // Nothing to do
     }
 
+    @Override
     public void configureRequest(ODataRequest request) {
         // Nothing to do
     }
 
+    @Override
     public void configureRequest(HttpRequestBase request) {
         // Nothing to do
     }
