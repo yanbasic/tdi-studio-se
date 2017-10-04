@@ -14,6 +14,7 @@ imports="
 " 
 skeleton="../templates/db_output_bulk.skeleton"
 %>
+/////////////////////// YPL BEGIN BEGIN /////////////////////
 <%@ include file="../templates/Log4j/Log4jDBConnUtil.javajet"%>
 <%
 CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
@@ -26,7 +27,6 @@ if(globalCid == null || "".equals(globalCid) || "\"\"".equals(globalCid)) {
 
 String field_separator = ElementParameterParser.getValue(node, "__FIELDS_TERMINATED_BY__");
 String null_string = ElementParameterParser.getValue(node, "__NULL_STRING__");
-String file = ElementParameterParser.getValue(node, "__REMOTE_FILENAME__");
 String host = ElementParameterParser.getValue(node, "__HOST__");
 String port = ElementParameterParser.getValue(node, "__PORT__");
 String db = ElementParameterParser.getValue(node, "__DBNAME__");
@@ -39,7 +39,6 @@ boolean is_escape_char = ("true").equals(ElementParameterParser.getValue(node, "
 
 String table = ElementParameterParser.getValue(node, "__TABLE__");
 boolean ros = ("true").equals(ElementParameterParser.getValue(node, "__ROS__"));
-boolean exitOnNoRows = ("true").equals(ElementParameterParser.getValue(node, "__EXIT_ON_NO_ROWS__"));
 boolean hasNullString = !null_string.matches("\"\"");
 boolean convertToUppercase = false; // not active this function
 boolean useExistingConnection = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__"));
@@ -71,7 +70,6 @@ copySchema += ")";
 %>
 String tableName_<%=cid%> = null;
 String dbschema_<%=cid %> = null;
-java.io.FileInputStream fis_<%=cid %> = null;
 java.sql.Connection conn_<%=cid%> = null;
 	<%
 	if(useExistingConnection) {
@@ -140,9 +138,13 @@ if((columnList != null && columnList.size() > 0) || "CLEAR".equals(tableAction) 
 <%    
 }
 String dataAction = ElementParameterParser.getValue(node,"__DATA_ACTION__");
+
+// The following try is closed by a finally in the tVerticaBulkExec_end (only if !useExistingConnection)
+if(!useExistingConnection) {
 %>
-try{
+try {
 <%
+}
 if(("UPDATE").equals(dataAction)) {
     if(columnList != null && columnList.size() > 0) {
         int keyCount = 0;
@@ -160,15 +162,9 @@ if(("UPDATE").equals(dataAction)) {
         if(dbschema_<%=cid%> != null && dbschema_<%=cid%>.trim().length() != 0) {
 	    	tableName_<%=cid%> = dbschema_<%=cid%> + "." + tableName_<%=cid%>;
 		}
-        java.sql.Statement stmtCreateTmp_<%=cid%> = conn_<%=cid%>.createStatement();
-		<%if(isLog4jEnabled){%>
-			log.info("<%=cid%> - Creating temp table <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%>." );
-		<%}%>
-        stmtCreateTmp_<%=cid%>.execute("<%=manager.getCreateTableSQL(stmtStructure)%>)");
-        <%if(isLog4jEnabled){%>
-        	log.info("<%=cid%> - Create temp table <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%> has succeeded.");
-        <%}%>
-        stmtCreateTmp_<%=cid%>.close();
+        
+		String sql_create_tmpdb = "<%=manager.getCreateTableSQL(stmtStructure)%>";
+        
 <%
 	}
 }
@@ -236,122 +232,25 @@ if(("INSERT").equals(dataAction) || columnList != null && columnList.size() > 0)
 			log.debug("<%=cid%> - Bulk SQL:"+sql_<%=cid%>+".");
 			log.info("<%=cid%> - Bulk inserting data into <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%>." );
         <%}%>
-    	fis_<%=cid %> = new java.io.FileInputStream(new java.io.File(<%=file%>));
 <%
 	if("vertica_3.0_jdk_5.jar".equals(db_version) || "vertica_3.5_jdk_5.jar".equals(db_version) || "vertica_4.0_jdk_5.jar".equals(db_version) || "vertica_4.1.7_jdk_5.jar".equals(db_version) || "vertica_4.1.14_jdk_5.jar".equals(db_version)){
 %>
-			 java.sql.Statement stmt_<%=cid %> = conn_<%=cid %>.createStatement();
+	    java.sql.Statement stmt_<%=cid %> = conn_<%=cid %>.createStatement();
 	    java.sql.ResultSet rs_<%=cid %> = stmt_<%=cid %>.executeQuery("select count(*) from " + tableName_<%=cid%>);
 	    int nbLineBeforeLoad_<%=cid %> = 0;
 	    while (rs_<%=cid %>.next()) {
 	    	nbLineBeforeLoad_<%=cid %> = rs_<%=cid %>.getInt(1);
-		}
-	    ((com.vertica.PGStatement) stmt_<%=cid %>).startCopyIn(sql_<%=cid %>, fis_<%=cid %>);
-	    ((com.vertica.PGStatement) stmt_<%=cid %>).addStreamToCopyIn(fis_<%=cid %>);
-	    ((com.vertica.PGStatement) stmt_<%=cid %>).finishCopyIn();
-	    <%if(isLog4jEnabled){%>
-            log.info("<%=cid%> - Bulk insert data into <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%> has finished.");
-        <%}%>
-		rs_<%=cid %> = stmt_<%=cid %>.executeQuery("select count(*) from " + tableName_<%=cid%>);
-	    int nbLineAfterLoad_<%=cid %> = 0;
-	    while (rs_<%=cid %>.next()) {
-	    	nbLineAfterLoad_<%=cid %> = rs_<%=cid %>.getInt(1);
-		}
-		stmt_<%=cid %>.close();
-		if(<%=exitOnNoRows%> && nbLineBeforeLoad_<%=cid %> >= nbLineAfterLoad_<%=cid %>){
-			throw new RuntimeException("No record was inserted in component <%=cid %>");
-		}else{
-			<%if(isLog4jEnabled){%>
-				log.info("<%=cid%> - Number of records inserted to table <%=manager.getLProtectedChar()%>" + tableName_<%=cid %> + "<%=manager.getRProtectedChar()%> by <%=cid %>: " + (nbLineAfterLoad_<%=cid %> - nbLineBeforeLoad_<%=cid %>)+".");
-			<%}%>
-			System.out.println("Number of records inserted to table <%=manager.getLProtectedChar()%>" + tableName_<%=cid %> + "<%=manager.getRProtectedChar()%> by <%=cid %>: " + (nbLineAfterLoad_<%=cid %> - nbLineBeforeLoad_<%=cid %>));
-		}
-		
-		globalMap.put("<%=globalCid %>_ACCEPTED_ROW_NUMBER",nbLineAfterLoad_<%=cid %> - nbLineBeforeLoad_<%=cid %>);	
+		}	
 		
 <%
 	}else{
 %>
-		 com.vertica.jdbc.VerticaCopyStream vcs_<%=cid%> = new com.vertica.jdbc.VerticaCopyStream((com.vertica.jdbc.VerticaConnection)conn_<%=cid%>,sql_<%=cid %>);
+		com.vertica.jdbc.VerticaCopyStream vcs_<%=cid%> = new com.vertica.jdbc.VerticaCopyStream((com.vertica.jdbc.VerticaConnection)conn_<%=cid%>,sql_<%=cid %>);
 		vcs_<%=cid%>.start();
-		vcs_<%=cid%>.addStream(fis_<%=cid %>);
-		vcs_<%=cid%>.execute();
-		vcs_<%=cid%>.finish();
-		<%if(isLog4jEnabled){%>
-            log.info("<%=cid%> - Bulk insert data into <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%> has finished.");
-        <%}%>
-		long copyNumber_<%=cid%> = vcs_<%=cid%>.getRowCount();
-		
-		//get rejected and accepted row number
-		java.sql.Statement stmt_accept_reject_<%=cid %> = conn_<%=cid %>.createStatement();
-		
-	    java.sql.ResultSet rs_<%=cid %> = stmt_accept_reject_<%=cid %>.executeQuery("select get_num_accepted_rows()");
-	    int accetpedRowNumber_<%=cid%> = 0;
-	    while (rs_<%=cid %>.next()) {
-	    	accetpedRowNumber_<%=cid %> = rs_<%=cid %>.getInt(1);
-		}
-		
-	    rs_<%=cid %> = stmt_accept_reject_<%=cid %>.executeQuery("select get_num_rejected_rows()");
-	    int rejectedRowNumber_<%=cid%> = 0;
-	    while (rs_<%=cid %>.next()) {
-	    	rejectedRowNumber_<%=cid %> = rs_<%=cid %>.getInt(1);
-		}
-		
-		stmt_accept_reject_<%=cid %>.close();
-		
-		if(<%=exitOnNoRows%> && copyNumber_<%=cid%> <= 0){
-			throw new RuntimeException("No record was inserted into component <%=cid %>");
-		}else{
-			<%if(isLog4jEnabled){%>
-				log.info("<%=cid%> - Number of records inserted into table <%=manager.getLProtectedChar()%>" + tableName_<%=cid %> + "<%=manager.getRProtectedChar()%> by <%=cid %>: " + (copyNumber_<%=cid%>)+".");
-			<%}%>
-			System.out.println("Number of records inserted into table <%=manager.getLProtectedChar()%>" + tableName_<%=cid %> + "<%=manager.getRProtectedChar()%> by <%=cid %>: " + (copyNumber_<%=cid%>));
-		}
-		
-		globalMap.put("<%=globalCid %>_ACCEPTED_ROW_NUMBER",accetpedRowNumber_<%=cid %>);
-		globalMap.put("<%=globalCid %>_REJECTED_ROW_NUMBER",rejectedRowNumber_<%=cid%>);
-	   
 <%
     }
 }
-if(("UPDATE").equals(dataAction) && columnList != null && columnList.size() > 0) {
 %>
-        String tmpTableName_<%=cid%> = "tmp_<%=cid%>" + pid + Thread.currentThread().getId();
-        if(dbschema_<%=cid%> == null || dbschema_<%=cid%>.trim().length() == 0) {
-	    	tableName_<%=cid%> = <%=table%>;
-		} else {
-	    	tableName_<%=cid%> = dbschema_<%=cid%> + "." + <%=table%>;
-	    	tmpTableName_<%=cid%>=dbschema_<%=cid%> + "." + tmpTableName_<%=cid%>;
-		}
-        java.sql.Statement stmtUpdateBulk_<%=cid%> = conn_<%=cid%>.createStatement();
-	<%if(isLog4jEnabled){%>
-		log.info("<%=cid%> - Updating <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%> from <%=manager.getLProtectedChar()%>"+tmpTableName_<%=cid%>+"<%=manager.getRProtectedChar()%>.");
-	<%}%>
-        stmtUpdateBulk_<%=cid%>.executeUpdate("<%=manager.getUpdateBulkSQL(columnList)%>");
-	<%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Update has finished.");%>
-        stmtUpdateBulk_<%=cid%>.close();
-        tableName_<%=cid%> = tmpTableName_<%=cid%>;
-        java.sql.Statement stmtTmpDrop_<%=cid%> = conn_<%=cid%>.createStatement();
-	<%if(isLog4jEnabled){%>
-		log.info("<%=cid%> - Droping temp table <%=manager.getLProtectedChar()%>" + tableName_<%=cid%> + "<%=manager.getRProtectedChar()%>.");
-	<%}%>
-        stmtTmpDrop_<%=cid%>.execute("<%=manager.getDropTableSQL()%>");
-        stmtTmpDrop_<%=cid%>.close();        
-	<%if(isLog4jEnabled){%>
-		log.info("<%=cid%> - Drop temp table <%=manager.getLProtectedChar()%>" + tableName_<%=cid%>+ "<%=manager.getRProtectedChar()%> has succeeded.");
-	<%}%>
-<%
-}
-%>
-}finally{
-	if(fis_<%=cid %>!=null)
-		fis_<%=cid%>.close();
-<%
-	if(!useExistingConnection) {
-		log4jCodeGenerateUtil.close(node);
-	}
-%>
-}
 
 
 
