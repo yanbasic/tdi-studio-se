@@ -43,9 +43,11 @@ skeleton="../templates/db_output_bulk.skeleton"
             db_version = ElementParameterParser.getValue(con_node,"__DB_VERSION__");
         }
     }
+    
+    boolean is_old_version = "vertica_3.0_jdk_5.jar".equals(db_version) || "vertica_3.5_jdk_5.jar".equals(db_version) || "vertica_4.0_jdk_5.jar".equals(db_version) || "vertica_4.1.7_jdk_5.jar".equals(db_version) || "vertica_4.1.14_jdk_5.jar".equals(db_version);
 %>
 <%
-if("vertica_3.0_jdk_5.jar".equals(db_version) || "vertica_3.5_jdk_5.jar".equals(db_version) || "vertica_4.0_jdk_5.jar".equals(db_version) || "vertica_4.1.7_jdk_5.jar".equals(db_version) || "vertica_4.1.14_jdk_5.jar".equals(db_version)){
+if(is_old_version){
 %>
     ((com.vertica.PGStatement) stmt_<%=cid%>).finishCopyIn();
     
