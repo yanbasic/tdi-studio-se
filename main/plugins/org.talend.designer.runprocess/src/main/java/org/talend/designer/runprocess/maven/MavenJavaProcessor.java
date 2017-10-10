@@ -45,7 +45,9 @@ import org.talend.core.runtime.repository.build.IBuildParametes;
 import org.talend.core.runtime.repository.build.IBuildPomCreatorParameters;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.designer.maven.model.TalendMavenConstants;
+import org.talend.designer.maven.tools.MavenPomSynchronizer;
 import org.talend.designer.maven.tools.creator.CreateMavenJobPom;
+import org.talend.designer.maven.utils.PomUtil;
 import org.talend.designer.runprocess.ProcessorException;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.designer.runprocess.java.JavaProcessor;
@@ -66,9 +68,17 @@ public class MavenJavaProcessor extends JavaProcessor {
     @Override
     public void generateCode(boolean statistics, boolean trace, boolean javaProperties, int option) throws ProcessorException {
         super.generateCode(statistics, trace, javaProperties, option);
-        // only job, now for Shadow Process/Data Preview.
         if (isStandardJob()) {
+            // for job
             generatePom(option);
+        } else {
+            // for Shadow Process/Data Preview
+            try {
+                PomUtil.updatePomDependenciesFromProcessor(this);
+                new MavenPomSynchronizer(this).syncRoutinesPom(null, true);
+            } catch (Exception e) {
+                throw new ProcessorException(e);
+            }
         }
     }
 
@@ -77,7 +87,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         if (buildChildrenJobs == null || buildChildrenJobs.isEmpty()) {
             buildChildrenJobs = new HashSet<>();
 
-            if (property != null) {
+            if (property != null && property.getItem() != null) {
                 Set<JobInfo> infos = ProcessorUtilities.getChildrenJobInfo((ProcessItem) property.getItem());
                 for (JobInfo jobInfo : infos) {
                     if (jobInfo.isTestContainer()
@@ -282,7 +292,7 @@ public class MavenJavaProcessor extends JavaProcessor {
         final ITalendProcessJavaProject talendJavaProject = getTalendJavaProject();
         // compile with JDT first in order to make the maven packaging work with a JRE.
         String goal = getGoals();
-        boolean isGoalPackage = TalendMavenConstants.GOAL_PACKAGE.equals(getGoals());
+        boolean isGoalPackage = TalendMavenConstants.GOAL_PACKAGE.equals(goal);
         IFile jobJarFile = null;
         if (!TalendMavenConstants.GOAL_COMPILE.equals(goal)) {
             if (isGoalPackage) {

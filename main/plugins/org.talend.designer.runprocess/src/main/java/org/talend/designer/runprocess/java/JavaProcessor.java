@@ -217,7 +217,12 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
     public JavaProcessor(IProcess process, Property property, boolean filenameFromLabel) {
         super(process);
         this.property = property;
-        this.talendJavaProject = TalendJavaProjectManager.getTalendJobJavaProject(property);
+        if (isStandardJob() && !isGuessSchemaJob(property)) {
+            this.talendJavaProject = TalendJavaProjectManager.getTalendJobJavaProject(property);
+        } else {
+            // for shadow process/data preview
+            this.talendJavaProject = TalendJavaProjectManager.getTempJavaProject();
+        }
         Assert.isNotNull(this.talendJavaProject, Messages.getString("JavaProcessor.notFoundedProjectException"));
         this.project = this.talendJavaProject.getProject();
         if (ProcessUtils.isTestContainer(process)) {
@@ -239,6 +244,10 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
         if (checkableEditor == null && process instanceof IProcess2 && ((IProcess2) process).getEditor() != null) {
             checkableEditor = CodeEditorFactory.getInstance().getCodeEditor((IProcess2) process);
         }
+    }
+
+    private boolean isGuessSchemaJob(Property property) {
+        return "ID".equals(property.getId()) && "Mock_job_for_Guess_schema".equals(property.getLabel()); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     @Override

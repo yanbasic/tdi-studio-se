@@ -182,7 +182,7 @@ public class TalendJavaProjectManager {
                 }
                 IJavaProject javaProject = JavaCore.create(codeProject);
                 if (!javaProject.isOpen()) {
-                    javaProject.open(new NullProgressMonitor());
+                    javaProject.open(monitor);
                 }
                 talendCodeJavaProject = new TalendProcessJavaProject(javaProject);
                 talendCodeJavaProject.cleanMavenFiles(monitor);
@@ -195,6 +195,9 @@ public class TalendJavaProjectManager {
     }
 
     public static ITalendProcessJavaProject getTalendJobJavaProject(Property property) {
+        if (property == null) {
+            return getTempJavaProject();
+        }
         if (property.getItem() instanceof JobletProcessItem) {
             return getTempJavaProject();
         }
@@ -227,7 +230,7 @@ public class TalendJavaProjectManager {
                 }
                 IJavaProject javaProject = JavaCore.create(jobProject);
                 if (!javaProject.isOpen()) {
-                    javaProject.open(new NullProgressMonitor());
+                    javaProject.open(monitor);
                 }
                 talendJobJavaProject = new TalendProcessJavaProject(javaProject, property);
                 if (talendJobJavaProject != null) {
@@ -245,16 +248,18 @@ public class TalendJavaProjectManager {
     }
 
     public static ITalendProcessJavaProject getTempJavaProject() {
+        NullProgressMonitor monitor = new NullProgressMonitor();
         if (tempJavaProject == null) {
             try {
-                IProject project = TalendCodeProjectUtil.initCodeProject(new NullProgressMonitor());
+                IProject project = TalendCodeProjectUtil.initCodeProject(monitor);
                 if (project != null) {
                     IJavaProject javaProject = JavaCore.create(project);
                     if (!javaProject.isOpen()) {
-                        javaProject.open(new NullProgressMonitor());
+                        javaProject.open(monitor);
                     }
                     tempJavaProject = new TalendProcessJavaProject(javaProject);
-                    tempJavaProject.createSubFolder(null, tempJavaProject.getSrcFolder(), JavaUtils.JAVA_INTERNAL_DIRECTORY);
+                    tempJavaProject.cleanMavenFiles(monitor);
+                    tempJavaProject.createSubFolder(monitor, tempJavaProject.getSrcFolder(), JavaUtils.JAVA_INTERNAL_DIRECTORY);
                 }
             } catch (Exception e) {
                 ExceptionHandler.process(e);
