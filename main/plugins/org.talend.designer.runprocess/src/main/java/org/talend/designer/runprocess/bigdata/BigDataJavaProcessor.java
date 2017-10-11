@@ -41,6 +41,7 @@ import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
+import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.runtime.process.TalendProcessArgumentConstant;
 import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.designer.maven.model.TalendMavenConstants;
@@ -186,7 +187,7 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
         List<String> list = new ArrayList<>();
         list.add(ProcessorConstants.CMD_KEY_WORD_LIBJAR);
         StringBuffer libJars = new StringBuffer();
-        Set<String> libNames = null;
+        Set<String> libNames = new HashSet<>();
         boolean isExport = isExportConfig() || isRunAsExport();
         if (process instanceof IProcess2) {
             if (isExport) {
@@ -198,6 +199,18 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor {
                 // We will
                 // handle them separetely.
                 libNames = JavaProcessorUtilities.extractLibNamesOnlyForMapperAndReducerWithoutRoutines((IProcess2) process);
+            }
+        }
+		Set<ModuleNeeded> modulesNeeded = LastGenerationInfo.getInstance().getModulesNeededWithSubjobPerJob(process.getId(), process.getVersion());
+        Set<String> allNeededLibsAfterAdjuster = new HashSet<String>();
+        for (ModuleNeeded module: modulesNeeded) {
+            allNeededLibsAfterAdjuster.add(module.getModuleName());
+        }
+        Iterator<String> it = libNames.iterator();
+        while (it.hasNext()) {
+            String jarName = it.next();
+            if (!allNeededLibsAfterAdjuster.contains(jarName)) {
+                it.remove();
             }
         }
         //TODO for run job, remove? or there are extra jars in lib than m2?
