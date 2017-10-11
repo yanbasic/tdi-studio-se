@@ -34,6 +34,26 @@
   </CONNECTORS>
 
   <PARAMETERS>
+  
+    <PARAMETER
+      NAME="IS_STREAM_LABEL"
+      FIELD="LABEL"
+      NUM_ROW="5"
+      REQUIRED="false"
+      SHOW_IF="#LINK@CONNECTOR.IN.FLOW_MAIN == '1'"
+    >
+      <DEFAULT>Note: You are in streaming mode, remove input flow to be able to select a file.</DEFAULT>
+    </PARAMETER>
+    
+    <PARAMETER
+      NAME="IS_FILE_LABEL"
+      FIELD="LABEL"
+      NUM_ROW="5"
+      REQUIRED="false"
+      SHOW_IF="#LINK@CONNECTOR.IN.FLOW_MAIN == '0'"
+    >
+      <DEFAULT>Note: Connect an input flow to switch to streaming mode.</DEFAULT>
+    </PARAMETER>
 
    <PARAMETER
       NAME="PROPERTY"
@@ -210,26 +230,6 @@
       SHOW_IF="#LINK@CONNECTOR.IN.FLOW_MAIN == '0'"
     >
       <DEFAULT>"__COMP_DEFAULT_FILE_DIR__/out.csv"</DEFAULT>
-    </PARAMETER>
-    
-    <PARAMETER
-      NAME="IS_STREAM_LABEL"
-      FIELD="LABEL"
-      NUM_ROW="905"
-      REQUIRED="false"
-      SHOW_IF="#LINK@CONNECTOR.IN.FLOW_MAIN == '1'"
-    >
-      <DEFAULT>Input flow must provide a stream in 'content' attribute (remove input flow to select a file).</DEFAULT>
-    </PARAMETER>
-    
-    <PARAMETER
-      NAME="IS_FILE_LABEL"
-      FIELD="LABEL"
-      NUM_ROW="905"
-      REQUIRED="false"
-      SHOW_IF="#LINK@CONNECTOR.IN.FLOW_MAIN == '0'"
-    >
-      <DEFAULT>Link an input flow to send streams.</DEFAULT>
     </PARAMETER>
 
     <PARAMETER
