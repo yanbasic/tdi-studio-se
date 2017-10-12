@@ -707,8 +707,8 @@ public class ProjectRefSettingPage extends ProjectSettingPage {
 
             public void run() throws PersistenceException {
                 try {
-                    ProjectManager.getInstance().getCurrentProject()
-                            .saveProjectReferenceList(convertToProjectReference(viewerInput));
+                    ProjectManager.getInstance().getCurrentProject().saveProjectReferenceList(convertToProjectReference(viewerInput));           
+                    getRepositoryContext().getProject().setReferenceProjectProvider(null);
                     ReferenceProjectProvider.removeAllTempReferenceList();
                 } catch (Exception e) {
                     errorException = e;
