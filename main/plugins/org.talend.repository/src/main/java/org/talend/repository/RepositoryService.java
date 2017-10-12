@@ -102,6 +102,7 @@ import org.talend.core.repository.model.RepositoryFactoryProvider;
 import org.talend.core.repository.model.repositoryObject.SalesforceModuleRepositoryObject;
 import org.talend.core.repository.utils.ProjectHelper;
 import org.talend.core.repository.utils.RepositoryPathProvider;
+import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.services.ISVNProviderService;
 import org.talend.core.ui.branding.IBrandingService;
 import org.talend.core.ui.component.ComponentsFactoryProvider;
@@ -809,7 +810,12 @@ public class RepositoryService implements IRepositoryService, IRepositoryContext
     @Override
     public String exportPigudf(IProcessor processor, Property property, boolean isExport) throws ProcessorException {
         // build java project
-        CorePlugin.getDefault().getRunProcessService().buildJavaProject();
+        ITalendProcessJavaProject pigudfProject = CorePlugin.getDefault().getRunProcessService().getTalendCodeJavaProject(ERepositoryObjectType.PIG_UDF);
+        try {
+            pigudfProject.buildModules(new NullProgressMonitor(), null, null);
+        } catch (Exception e) {
+            throw new ProcessorException(e.getMessage());
+        }
 
         Map<ExportChoice, Object> exportChoiceMap = new EnumMap<ExportChoice, Object>(ExportChoice.class);
         exportChoiceMap.put(ExportChoice.needPigudf, true);

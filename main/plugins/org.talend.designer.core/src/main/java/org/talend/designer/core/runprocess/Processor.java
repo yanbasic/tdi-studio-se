@@ -184,7 +184,11 @@ public abstract class Processor implements IProcessor, IEclipseProcessor, Talend
             // this will be used for example for the shadow process.
             if (!codeGenerated) {
                 generateCode(statisticsPort != NO_STATISTICS, tracePort != NO_TRACES, true);
-                CorePlugin.getDefault().getRunProcessService().buildJavaProject();
+                try {
+                    getTalendJavaProject().buildModules(new NullProgressMonitor(), null, null);
+                } catch (Exception e) {
+                    throw new ProcessorException(e.getMessage());
+                }
             }
         }
         if (optionsParam == null) {

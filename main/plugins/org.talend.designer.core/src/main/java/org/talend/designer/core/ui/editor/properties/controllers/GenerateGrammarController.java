@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -425,7 +426,12 @@ public class GenerateGrammarController extends AbstractElementPropertySectionCon
         if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
             IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                     IRunProcessService.class);
-            processService.buildJavaProject();
+            ITalendProcessJavaProject routineProject = processService.getTalendCodeJavaProject(ERepositoryObjectType.ROUTINES);
+            try {
+                routineProject.buildModules(new NullProgressMonitor(), null, null);
+            } catch (Exception e) {
+                ExceptionHandler.process(e);
+            }
         }
     }
 

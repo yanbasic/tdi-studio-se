@@ -48,6 +48,8 @@ public class DeleteAllJobWhenStartUp implements IStartup {
     public static boolean executed;
 
     public void startup() {
+        // won't do clean projects when startup
+        // will do when every individual project created.
         // earlyStartup();
     }
     
@@ -78,7 +80,7 @@ public class DeleteAllJobWhenStartUp implements IStartup {
             public void run(IProgressMonitor monitor) throws CoreException {
                 IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                         IRunProcessService.class);
-                ITalendProcessJavaProject talendJavaProject = processService.getTalendProcessJavaProject();
+                ITalendProcessJavaProject talendJavaProject = processService.getTempJavaProject();
                 if (talendJavaProject != null) {
                     IJavaProject jProject = talendJavaProject.getJavaProject();
                     if (!jProject.isOpen()) {

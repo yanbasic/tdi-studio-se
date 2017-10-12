@@ -86,7 +86,7 @@ public class JavaTestShadow {
             if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
                 IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                         IRunProcessService.class);
-                talendProcessJavaProject = processService.getTalendProcessJavaProject();
+                talendProcessJavaProject = processService.getTempJavaProject();
             }
             if (talendProcessJavaProject == null) {
                 return;

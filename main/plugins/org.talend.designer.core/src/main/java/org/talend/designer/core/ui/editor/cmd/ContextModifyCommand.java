@@ -206,7 +206,7 @@ public class ContextModifyCommand extends Command {
         if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
             IRunProcessService service = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                     IRunProcessService.class);
-            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+            ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(process.getProperty());
             if (talendProcessJavaProject != null) {
                 IFolder srcFolder = talendProcessJavaProject.getResourcesFolder();
                 return srcFolder.getFile(path);

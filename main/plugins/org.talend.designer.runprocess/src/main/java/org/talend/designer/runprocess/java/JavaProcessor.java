@@ -571,7 +571,7 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
                             }
                         }
                         if (useGenerateRuleFiles && rulesService != null && currentJavaProject != null) {
-                            rulesService.generateFinalRuleFiles(currentJavaProject, this.process);
+                            rulesService.generateFinalRuleFiles(currentJavaProject, this.process, getTalendJavaProject());
                             LastGenerationInfo.getInstance().setUseRules(this.process.getId(), this.process.getVersion(), true);
                         }
                     }

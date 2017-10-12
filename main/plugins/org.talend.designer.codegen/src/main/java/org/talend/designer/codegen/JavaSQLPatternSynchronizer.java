@@ -46,7 +46,7 @@ public class JavaSQLPatternSynchronizer extends AbstractSQLPatternSynchronizer {
     @Override
     public IFile getSQLPatternFile(SQLPatternItem item) throws SystemException {
         IRunProcessService service = CodeGeneratorActivator.getDefault().getRunProcessService();
-        ITalendProcessJavaProject talendProcessJavaProject = service.getTalendProcessJavaProject();
+        ITalendProcessJavaProject talendProcessJavaProject = service.getTempJavaProject();
         if (talendProcessJavaProject == null) {
             return null;
         }

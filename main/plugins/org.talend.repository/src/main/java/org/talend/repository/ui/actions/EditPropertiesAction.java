@@ -218,7 +218,7 @@ public class EditPropertiesAction extends AContextualAction {
     protected void processRename(IRepositoryNode node, String originalName) {
         try {
             IRunProcessService runProcessService = CorePlugin.getDefault().getRunProcessService();
-            ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendProcessJavaProject();
+            ITalendProcessJavaProject talendProcessJavaProject = runProcessService.getTalendCodeJavaProject(node.getObjectType());
             if (talendProcessJavaProject == null) {
                 return;
             }

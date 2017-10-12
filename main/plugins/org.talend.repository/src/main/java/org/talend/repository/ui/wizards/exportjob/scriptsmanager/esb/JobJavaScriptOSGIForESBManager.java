@@ -249,7 +249,7 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         File jarFile = new File(getTmpFolder() + File.separatorChar + JavaUtils.ROUTINES_JAR);
 
         // make a jar file of system routine classes
-        File classRootFileLocation = getClassRootFileLocation();
+        File classRootFileLocation = getCodeClassRootFileLocation(ERepositoryObjectType.ROUTINES);
         if (classRootFileLocation == null) {
             return;
         }
@@ -357,7 +357,7 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                 String[] jf = jobFolderName.split(":"); //$NON-NLS-1$
                 String projectName = jf[0];
                 String folderName = jf[1];
-                String classRootLocation = getClassRootLocation() + projectName + File.separator;
+                String classRootLocation = getClassRootLocation(process) + projectName + File.separator;
                 String classRoot = FilesUtils.getFileRealPath(classRootLocation + folderName);
                 String targetPath = FilesUtils.getFileRealPath(classesLocation + File.separator + projectName + File.separator
                         + folderName);
@@ -375,6 +375,11 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         } catch (Exception e) {
             ExceptionHandler.process(e);
         }
+    }
+
+    private String getClassRootLocation(ProcessItem process) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     private static boolean isTalendESBJob(ProcessItem processItem) {
@@ -824,19 +829,16 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class)) {
             IRunProcessService processService = (IRunProcessService) GlobalServiceRegister.getDefault().getService(
                     IRunProcessService.class);
-            ITalendProcessJavaProject talendProcessJavaProject = processService.getTalendProcessJavaProject();
-            if (talendProcessJavaProject != null) {
-                IFolder libFolder = talendProcessJavaProject.getLibFolder();
-                File file = libFolder.getLocation().toFile();
-                File[] files = file.listFiles(FilesUtils.getAcceptModuleFilesFilter());
-                for (File tempFile : files) {
-                    try {
-                        if (neededModules.contains(tempFile.getName())) {
-                            list.add(tempFile.toURI().toURL());
-                        }
-                    } catch (MalformedURLException e) {
-                        ExceptionHandler.process(e);
+            IFolder libFolder = processService.getJavaProjectLibFolder();
+            File file = libFolder.getLocation().toFile();
+            File[] files = file.listFiles(FilesUtils.getAcceptModuleFilesFilter());
+            for (File tempFile : files) {
+                try {
+                    if (neededModules.contains(tempFile.getName())) {
+                        list.add(tempFile.toURI().toURL());
                     }
+                } catch (MalformedURLException e) {
+                    ExceptionHandler.process(e);
                 }
             }
         }

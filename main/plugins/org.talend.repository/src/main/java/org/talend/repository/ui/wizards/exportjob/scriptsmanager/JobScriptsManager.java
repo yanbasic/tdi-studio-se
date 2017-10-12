@@ -750,7 +750,7 @@ public abstract class JobScriptsManager {
         }
         // maybe, not used
         ITalendProcessJavaProject talendProcessJavaProject = RepositoryPlugin.getDefault().getRunProcessService()
-                .getTalendProcessJavaProject();
+                .getTempJavaProject();
         if (talendProcessJavaProject == null) {
             return new Path(""); //$NON-NLS-1$
         }

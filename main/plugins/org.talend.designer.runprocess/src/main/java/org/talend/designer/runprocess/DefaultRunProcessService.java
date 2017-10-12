@@ -534,14 +534,7 @@ public class DefaultRunProcessService implements IRunProcessService {
      */
     @Override
     public void buildJavaProject() {
-        ITalendProcessJavaProject talendProcessJavaProject = getTalendProcessJavaProject();
-        if (talendProcessJavaProject != null) {
-            try {
-                talendProcessJavaProject.buildModules(new NullProgressMonitor(), null, null);
-            } catch (Exception e) {
-                ExceptionHandler.process(e);
-            }
-        }
+        //
     }
 
     /*
