@@ -148,7 +148,8 @@ String sequence_<%=cid%> = <%=ElementParameterParser.getValue(node,"__SK_DB_SEQU
     <%if("snowflake_id".equals(dbmsId)) {%>
     String sequenceValueFetchPattern_<%=cid%>;
     if(dbschema_<%=cid%>!=null && !dbschema_<%=cid%>.trim().isEmpty()) {
-        sequenceValueFetchPattern_<%=cid%> = dbschema_<%=cid%> + "<%=manager.getRProtectedChar()%>.<%=manager.getLProtectedChar()%>" + sequence_<%=cid%>+".nextval ";
+        sequenceValueFetchPattern_<%=cid%> = dbschema_<%=cid%> + "." + sequence_<%=cid%>+".nextval ";
+        //snowflake is not case sensitive, so no need to consider the quoter here.
     }else{
         sequenceValueFetchPattern_<%=cid%> = sequence_<%=cid%>+".nextval ";
     }
