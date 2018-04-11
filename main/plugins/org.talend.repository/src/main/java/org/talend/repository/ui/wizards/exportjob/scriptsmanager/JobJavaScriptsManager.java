@@ -77,6 +77,7 @@ import org.talend.core.model.process.JobInfo;
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Project;
+import org.talend.core.model.properties.ProjectReference;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.properties.RoutineItem;
 import org.talend.core.model.properties.RulesItem;
@@ -116,6 +117,7 @@ import org.talend.repository.constants.Log4jPrefsConstants;
 import org.talend.repository.documentation.ExportFileResource;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.IProxyRepositoryFactory;
+import org.talend.repository.model.IProxyRepositoryService;
 import org.talend.repository.ui.utils.Log4jPrefsSettingManager;
 import org.talend.repository.utils.EmfModelUtils;
 import org.talend.repository.utils.EsbConfigUtils;
@@ -1754,13 +1756,28 @@ public class JobJavaScriptsManager extends JobScriptsManager {
         if (USER_BEANS_PATH.equals(type)) {
             ERepositoryObjectType beansType = null;
             if (GlobalServiceRegister.getDefault().isServiceRegistered(ICamelDesignerCoreService.class)) {
-                ICamelDesignerCoreService service = (ICamelDesignerCoreService) GlobalServiceRegister.getDefault().getService(
-                        ICamelDesignerCoreService.class);
+                ICamelDesignerCoreService service = (ICamelDesignerCoreService) GlobalServiceRegister.getDefault()
+                        .getService(ICamelDesignerCoreService.class);
                 beansType = service.getBeansType();
             }
 
             try {
                 toReturn = ProxyRepositoryFactory.getInstance().getAll(beansType);
+
+                // Need to add beans in reference projects
+                IProxyRepositoryService service = (IProxyRepositoryService) GlobalServiceRegister.getDefault()
+                        .getService(IProxyRepositoryService.class);
+                if (service != null) {
+                    IProxyRepositoryFactory factory = service.getProxyRepositoryFactory();
+                    if (factory != null) {
+                        List<ProjectReference> references = ProjectManager.getInstance().getCurrentProject()
+                                .getProjectReferenceList(true);
+                        for (ProjectReference ref : references) {
+                            toReturn.addAll(factory.getAll(new org.talend.core.model.general.Project(ref.getReferencedProject()),
+                                    beansType));
+                        }
+                    }
+                }
             } catch (PersistenceException e) {
                 ExceptionHandler.process(e);
                 toReturn = Collections.emptyList();
