@@ -51,20 +51,38 @@
 				<version>2.5.3</version>
 				<extensions>true</extensions>
 				<configuration>
-					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
-					</archive>
-					<instructions>
-						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-						<Bundle-Name>${talend.job.name}</Bundle-Name>
-						<Bundle-Version>${project.version}</Bundle-Version>
-						<Export-Package>${bundle.config.export.package}</Export-Package>
-						<Export-Service>${bundle.config.export.service}</Export-Service>
-						<Import-Package>${bundle.config.import.package}, *;resolution:=optional</Import-Package>
-						<Bundle-ClassPath>., {maven-dependencies}</Bundle-ClassPath>
-					</instructions>
+                    <skip>true</skip>
 				</configuration>
 			</plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                  <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>single</goal>
+                    </goals>
+                    <configuration>
+                      <descriptors>
+                        <descriptor>${basedir}/src/main/assemblies/assembly.xml</descriptor>
+                      </descriptors>
+                      <tarLongFileMode>gnu</tarLongFileMode>
+                      <appendAssemblyId>false</appendAssemblyId>
+                      <finalName>${talend.job.name}-bundle-${project.version}</finalName>
+                      <archive>
+                        <manifestFile>${current.bundle.resources.dir}/META-INF/MANIFEST.MF</manifestFile>
+                      </archive>
+                    </configuration>
+                  </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
     <profiles>
@@ -282,6 +300,5 @@
             </plugins>
           </build>
         </profile>
-            
     </profiles>
 </project>
