@@ -683,16 +683,22 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                     .getService(IRunProcessService.class);
             ITalendProcessJavaProject talendProcessJavaProject = service.getTalendJobJavaProject(processItem.getProperty());
             if (talendProcessJavaProject != null) {
+                String optional = ";resolution:=optional";
                 String src = JavaResourcesHelper.getJobClassFilePath(processItem, true);
                 IFile srcFile = talendProcessJavaProject.getSrcFolder().getFile(src);
-                Set<String> imports = importCompiler(srcFile.getLocation().toString()+"");
+                Set<String> imports = importCompiler(srcFile.getLocation().toString());
                 String[] defaultPackages = analyzer.getProperty(Analyzer.IMPORT_PACKAGE).split(",");
-                imports.addAll(Arrays.asList(defaultPackages));
+                for (String dp : defaultPackages) {
+                    if (!imports.contains(dp) && !imports.contains(dp + optional)) {
+                        imports.add(dp);
+                    }
+                }
                 imports.remove("*;resolution:=optional");
                 imports.remove("routines.system");
+                imports.remove("routines.system" + optional);
                 StringBuilder importPackage = new StringBuilder();
-                for (String ip : imports) {
-                    importPackage.append(ip).append(',');
+                for (String packageName : imports) {
+                    importPackage.append(packageName).append(',');
                 }
                 importPackage.append("*;resolution:=optional");
                 analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackage.toString());
@@ -703,7 +709,6 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         Manifest manifest = null;
         try {
             manifest = analyzer.calcManifest();
-            manifest.getAttributes(Analyzer.IMPORT_PACKAGE);
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
@@ -939,7 +944,7 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                     new PrintWriter(err), null);
             String errString = new String(err.toByteArray());
             String[] errBlocks = errString.split("----------");
-            String reg = "([a-z_0-9\\.]+)\\.";
+            String reg = "(^[a-z_0-9\\.]+)\\.";
             Pattern pattern = Pattern.compile(reg);
             for (String errBlock : errBlocks) {
                 String[] lines = errBlock.trim().replaceAll("\r", "").split("\n");
@@ -949,7 +954,7 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                         Matcher m = pattern.matcher(lines[1].substring(markerPos));
                         if (m.find()) {
                             if (m.groupCount() == 1 && m.group(1).indexOf('.') > 0) {
-                                imports.add(m.group(1));
+                                imports.add(m.group(1) + ";resolution:=optional");
                             }
                         }
                     }
